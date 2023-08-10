@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "project_apis",
+  "info": {
+    "singularName": "project-api",
+    "pluralName": "project-apis",
+    "displayName": "project_api"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "project_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::project.project",
+      "inversedBy": "project_apis"
+    },
+    "api_collection_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-collection.api-collection",
+      "inversedBy": "project_apis"
+    }
+  }
+}

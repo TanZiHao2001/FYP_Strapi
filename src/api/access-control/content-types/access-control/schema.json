@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "access_controls",
+  "info": {
+    "singularName": "access-control",
+    "pluralName": "access-controls",
+    "displayName": "access_control",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "Pending",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Pending",
+      "required": true
+    },
+    "vendor_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::vendor.vendor",
+      "inversedBy": "access_controls"
+    },
+    "api_collection_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-collection.api-collection",
+      "inversedBy": "access_controls"
+    }
+  }
+}

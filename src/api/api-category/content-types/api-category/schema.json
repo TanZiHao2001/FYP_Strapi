@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_categories",
+  "info": {
+    "singularName": "api-category",
+    "pluralName": "api-categories",
+    "displayName": "api_category"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "category_name": {
+      "type": "string",
+      "required": true
+    },
+    "api_collection_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-collection.api-collection",
+      "inversedBy": "api_categories"
+    }
+  }
+}

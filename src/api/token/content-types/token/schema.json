@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tokens",
+  "info": {
+    "singularName": "token",
+    "pluralName": "tokens",
+    "displayName": "token",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "created_date": {
+      "type": "datetime"
+    },
+    "expiration_date": {
+      "type": "datetime"
+    },
+    "last_used_date": {
+      "type": "datetime"
+    },
+    "project_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::project.project",
+      "inversedBy": "tokens"
+    },
+    "token": {
+      "type": "string",
+      "minLength": 15,
+      "unique": true
+    }
+  }
+}

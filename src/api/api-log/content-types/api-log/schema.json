@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_logs",
+  "info": {
+    "singularName": "api-log",
+    "pluralName": "api-logs",
+    "displayName": "api_log"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "time": {
+      "type": "datetime"
+    },
+    "response_time": {
+      "type": "time"
+    },
+    "response_size": {
+      "type": "decimal"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "success",
+        "failed"
+      ]
+    },
+    "project_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::project.project",
+      "inversedBy": "api_logs"
+    },
+    "api_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::api.api",
+      "inversedBy": "api_log"
+    }
+  }
+}
