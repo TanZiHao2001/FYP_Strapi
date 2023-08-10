@@ -4,7 +4,8 @@
   "info": {
     "singularName": "api-category",
     "pluralName": "api-categories",
-    "displayName": "api_category"
+    "displayName": "api_category",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
