@@ -20,6 +20,12 @@
       "relation": "manyToOne",
       "target": "api::api-collection.api-collection",
       "inversedBy": "api_categories"
+    },
+    "apis": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api.api",
+      "mappedBy": "api_category_id"
     }
   }
 }

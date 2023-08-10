@@ -4,7 +4,8 @@
   "info": {
     "singularName": "api-log",
     "pluralName": "api-logs",
-    "displayName": "api_log"
+    "displayName": "api_log",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -13,9 +14,6 @@
   "attributes": {
     "time": {
       "type": "datetime"
-    },
-    "response_time": {
-      "type": "time"
     },
     "response_size": {
       "type": "decimal"
@@ -38,6 +36,9 @@
       "relation": "oneToOne",
       "target": "api::api.api",
       "inversedBy": "api_log"
+    },
+    "response_time": {
+      "type": "integer"
     }
   }
 }

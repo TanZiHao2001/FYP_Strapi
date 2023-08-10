@@ -28,7 +28,7 @@
       "inversedBy": "tokens"
     },
     "token": {
-      "type": "string",
+      "type": "text",
       "minLength": 15,
       "unique": true
     }

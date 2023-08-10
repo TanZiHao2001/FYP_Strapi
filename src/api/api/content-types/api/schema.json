@@ -4,7 +4,8 @@
   "info": {
     "singularName": "api",
     "pluralName": "apis",
-    "displayName": "api"
+    "displayName": "api",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -42,6 +43,12 @@
       "relation": "oneToOne",
       "target": "api::api-log.api-log",
       "mappedBy": "api_id"
+    },
+    "api_category_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-category.api-category",
+      "inversedBy": "apis"
     }
   }
 }
