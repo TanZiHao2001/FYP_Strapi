@@ -42,7 +42,7 @@ module.exports = createCoreController('api::project.project', ({strapi}) => ({
     result[0].token = result[0].tokens[0].token;
     delete result[0].tokens;
 
-    return result[0]
+    return result;
   }
 
 }));
