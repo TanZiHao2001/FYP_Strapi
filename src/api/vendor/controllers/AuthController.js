@@ -41,6 +41,10 @@ module.exports = {
     }
   },
   login: async (ctx) => {
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
     try {
       // TODO: Implement user authentication using Strapi's authentication mechanisms
       // For example, you can use: const user = await strapi.plugins['users-permissions'].services.user.fetch({ email });
@@ -48,24 +52,32 @@ module.exports = {
       //
       // if (!user) throw strapi.errors.notFound('User not registered');
       // if (!isMatch) throw strapi.errors.unauthorized('Username/Password invalid');
-
       const { email, password } = ctx.request.body;
+      if(!validateEmail(email)){
+        throw new Error('Please enter a valid email!');
+      }
+      if(email.length == 0){
+        throw new Error('Email cannot be empty!');
+      }
+      if(password.length == 0){
+        throw new Error('Password cannot be empty!');
+      }
       ctx.request.query.filters = {
         email: {
             $eq: email
         }
       }
-    
+
       const contentType = strapi.contentType('api::vendor.vendor')
       const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
       const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
       
       if(entities.length === 0){
-        throw new Error('Vendor not found!');
+        throw new Error('Invalid email / password');
       }
       const isPasswordValid = await bcrypt.compare(password, entities[0].password);
       if (!isPasswordValid) {
-        throw new Error('Invalid password');
+        throw new Error('Invalid email / password');
       }
       // TODO: should put user id
       const accessToken = await signAccessToken(entities[0].id);
@@ -98,7 +110,7 @@ module.exports = {
       if (error) {
         // If it's a validation error (Joi)
         ctx.response.status = 400;
-        ctx.response.body = {error: 'Invalid Username / Password'};
+        ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 500;
