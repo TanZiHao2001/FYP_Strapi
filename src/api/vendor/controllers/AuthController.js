@@ -107,10 +107,17 @@ module.exports = {
     }
   },
   register: async (ctx) => {
-    // try {
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+    try {
       console.log(ctx.request.body);
       const { email, password, organisation } = ctx.request.body;
 
+      if(!validateEmail(email)){
+        throw new Error('Please enter a valid email!');
+      }
       const result = await strapi.db.query('api::vendor.vendor').findMany({ 
         where:{
           email: {
@@ -158,17 +165,18 @@ module.exports = {
         }
       });
       ctx.send({message: 'Vendor created'});
-    // } catch (error) {
-      // if (error.isJoi === true) {
-      //   // Set the status and error message properly
-      //   ctx.response.status = 422;
-      //   ctx.response.body = {error: error.details[0].message};
-      // } else {
-      //   // Handle other errors accordingly
-      //   ctx.response.status = 500;
-      //   ctx.response.body = {error: 'Internal Server Error'};
-      // }
-    // }
+    } catch (error) {
+      if (error) {
+        // Set the status and error message properly
+        ctx.response.status = 422;
+        ctx.response.body = {error: error.message};
+        // ctx.send({message: error})
+      } else {
+        // Handle other errors accordingly
+        ctx.response.status = 500;
+        ctx.response.body = {error: 'Internal Server Error'};
+      }
+    }
   },
   logout: async (ctx) => {
     try {
