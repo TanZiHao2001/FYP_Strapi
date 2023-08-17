@@ -106,6 +106,78 @@ module.exports = {
       }
     }
   },
+  // register: async (ctx) => {
+  //   function validateEmail(email) {
+  //     var re = /\S+@\S+\.\S+/;
+  //     return re.test(email);
+  //   }
+  //   try {
+  //     console.log(ctx.request.body);
+  //     const { email, password, organisation } = ctx.request.body;
+
+  //     if(!validateEmail(email)){
+  //       throw new Error('Please enter a valid email!');
+  //     }
+  //     const result = await strapi.db.query('api::vendor.vendor').findMany({ 
+  //       where:{
+  //         email: {
+  //           $eq: email,
+  //         }
+  //       }
+  //     });
+  //     console.log(result)
+  //     if (result.length !== 0) {
+  //       throw new Error('Email already existed!');
+  //     }
+  //     const entry = await strapi.entityService.create('api::vendor.vendor', {
+  //       data:{
+  //         email: email,
+  //         password: password,
+  //         username: email.split("@")[0],
+  //         organisation: organisation,
+  //         status: "Pending",
+  //         publishedAt: Date.now()
+  //       },
+  //     });
+
+  //     const accessToken = await signAccessToken(entry.id);
+  //     const refreshToken = await signRefreshToken(entry.id);
+
+  //     ctx.cookies.set('accessToken', accessToken + '', {
+  //       httpOnly: true,
+  //       secure: false,
+  //       sameSite: 'strict',
+  //       maxAge: 60 * 60 * 24, // 1 day in seconds
+  //       path: '/',
+  //     });
+
+  //     ctx.cookies.set('refreshToken', refreshToken + '', {
+  //       httpOnly: true,
+  //       secure: false,
+  //       sameSite: 'strict',
+  //       maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+  //       path: '/',
+  //     });
+
+  //     await strapi.entityService.update('api::vendor.vendor', entry.id, {
+  //       data: {
+  //         refresh_token: refreshToken,
+  //       }
+  //     });
+  //     ctx.send({message: 'Vendor created'});
+  //   } catch (error) {
+  //     if (error) {
+  //       // Set the status and error message properly
+  //       ctx.response.status = 422;
+  //       ctx.response.body = {error: error.message};
+  //       // ctx.send({message: error})
+  //     } else {
+  //       // Handle other errors accordingly
+  //       ctx.response.status = 500;
+  //       ctx.response.body = {error: 'Internal Server Error'};
+  //     }
+  //   }
+  // },
   register: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
@@ -132,7 +204,6 @@ module.exports = {
       const entry = await strapi.entityService.create('api::vendor.vendor', {
         data:{
           email: email,
-          password: password,
           username: email.split("@")[0],
           organisation: organisation,
           status: "Pending",
@@ -165,6 +236,30 @@ module.exports = {
         }
       });
       ctx.send({message: 'Vendor created'});
+    } catch (error) {
+      if (error) {
+        // Set the status and error message properly
+        ctx.response.status = 422;
+        ctx.response.body = {error: error.message};
+        // ctx.send({message: error})
+      } else {
+        // Handle other errors accordingly
+        ctx.response.status = 500;
+        ctx.response.body = {error: 'Internal Server Error'};
+      }
+    }
+  },
+  setPassword: async (ctx) => {
+    try {
+      //console.log(ctx.request.body);
+      //const { email, password, organisation } = ctx.request.body;
+
+      await strapi.entityService.update('api::vendor.vendor', 6, {
+        data: {
+          password: ctx.request.password,
+        }
+      });
+      ctx.send({message: 'Successful'});
     } catch (error) {
       if (error) {
         // Set the status and error message properly

@@ -22,6 +22,14 @@ module.exports = {
     },
     {
       method: 'POST',
+      path: '/custom/setPassword',
+      handler: AuthController.setPassword,
+      config: {
+        auth: false,
+      }
+    },
+    {
+      method: 'POST',
       path: '/custom/login',
       handler: AuthController.login,
       config: {
