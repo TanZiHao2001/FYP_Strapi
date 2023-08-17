@@ -2,7 +2,9 @@ const createError = require("http-errors");
 const {verifyRefreshToken, signAccessToken, signRefreshToken} = require("../helpers/jwt_helper");
 const {authSchema} = require("../helpers/validation_schema");
 const cookie = require("cookie-parser")
-
+const {sanitize} = require('@strapi/utils')
+const {contentAPI} = sanitize;
+const bcrypt = require('bcryptjs');
 
 module.exports = {
   refreshToken: async (ctx) => {
@@ -47,13 +49,31 @@ module.exports = {
       // if (!user) throw strapi.errors.notFound('User not registered');
       // if (!isMatch) throw strapi.errors.unauthorized('Username/Password invalid');
 
+      const { email, password } = ctx.request.body;
+      ctx.request.query.filters = {
+        email: {
+            $eq: email
+        }
+      }
+    
+      const contentType = strapi.contentType('api::vendor.vendor')
+      const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
+      const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
+      
+      if(entities.length === 0){
+        throw new Error('Vendor not found!');
+      }
+      const isPasswordValid = await bcrypt.compare(password, entities[0].password);
+      if (!isPasswordValid) {
+        throw new Error('Invalid password');
+      }
       // TODO: should put user id
-      const accessToken = await signAccessToken(1);
-      const refreshToken = await signRefreshToken(2);
+      const accessToken = await signAccessToken(entities[0].id);
+      const refreshToken = await signRefreshToken(entities[0].id);
 
       ctx.cookies.set('accessToken', accessToken + '', {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'strict',
         maxAge: 60 * 60 * 24, // 1 day in seconds
         path: '/',
@@ -61,18 +81,24 @@ module.exports = {
 
       ctx.cookies.set('refreshToken', refreshToken + '', {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
         path: '/',
       });
 
-      ctx.send({message: 'logged'});
+      await strapi.entityService.update('api::vendor.vendor', entities[0].id, {
+        data: {
+          refresh_token: refreshToken,
+        }
+      });
+      ctx.send({message: 'successfully logged in'});
+      //ctx.send({entities});
     } catch (error) {
-      if (error.details) {
+      if (error) {
         // If it's a validation error (Joi)
         ctx.response.status = 400;
-        ctx.response.body = {error: 'Invalid Username/Password'};
+        ctx.response.body = {error: 'Invalid Username / Password'};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 500;
@@ -83,17 +109,32 @@ module.exports = {
   register: async (ctx) => {
     // try {
       console.log(ctx.request.body);
+      const { email, password, organisation } = ctx.request.body;
 
-      const result = await ctx.request.body;
+      const result = await strapi.db.query('api::vendor.vendor').findMany({ 
+        where:{
+          email: {
+            $eq: email,
+          }
+        }
+      });
+      console.log(result)
+      if (result.length !== 0) {
+        throw new Error('Email already existed!');
+      }
+      const entry = await strapi.entityService.create('api::vendor.vendor', {
+        data:{
+          email: email,
+          password: password,
+          username: email.split("@")[0],
+          organisation: organisation,
+          status: "Pending",
+          publishedAt: Date.now()
+        },
+      });
 
-      // TODO: integrate MySQL (Strapi provides ORM for this)
-      // const doesExist = await strapi.query('user', 'users-permissions').findOne({email: result.email});
-      // if (doesExist) throw strapi.errors.conflict(`${result.email} is registered`);
-      //
-      // const user = await strapi.query('user', 'users-permissions').create(result);
-      // TODO: add user id
-      const accessToken = await signAccessToken(1);
-      const refreshToken = await signRefreshToken(2);
+      const accessToken = await signAccessToken(entry.id);
+      const refreshToken = await signRefreshToken(entry.id);
 
       ctx.cookies.set('accessToken', accessToken + '', {
         httpOnly: true,
@@ -111,6 +152,11 @@ module.exports = {
         path: '/',
       });
 
+      await strapi.entityService.update('api::vendor.vendor', entry.id, {
+        data: {
+          refresh_token: refreshToken,
+        }
+      });
       ctx.send({message: 'Vendor created'});
     // } catch (error) {
       // if (error.isJoi === true) {

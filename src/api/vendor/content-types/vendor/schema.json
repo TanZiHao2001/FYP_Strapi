@@ -4,7 +4,8 @@
   "info": {
     "singularName": "vendor",
     "pluralName": "vendors",
-    "displayName": "vendor"
+    "displayName": "vendor",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -47,6 +48,9 @@
       "relation": "oneToMany",
       "target": "api::project.project",
       "mappedBy": "vendor_id"
+    },
+    "refresh_token": {
+      "type": "text"
     }
   }
 }
