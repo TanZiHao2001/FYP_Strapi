@@ -12,14 +12,14 @@ const {contentAPI} = sanitize;
 module.exports = createCoreController('api::access-control.access-control', ({strapi}) => ({
 
   async find(ctx) {
-    const decoded = jwt.decode(ctx.request.header.authorization)
-    const vendor_id = decoded.id;
+    // const decoded = jwt.decode(ctx.request.header.authorization)
+    // const vendor_id = decoded.id;
 
     ctx.request.query = {
       filters: {
         vendor_id: {
           id: {
-            $eq: vendor_id
+            $eq: 1
           },
         }
       },
@@ -30,7 +30,7 @@ module.exports = createCoreController('api::access-control.access-control', ({st
         },
       }
     }
-    console.log(ctx.request)
+    console.log(ctx)
     const contentType = strapi.contentType('api::access-control.access-control')
     const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
     const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)

@@ -1,5 +1,20 @@
 'use strict';
+const express = require('express')
+require('dotenv').config()
 
+const cors = require('cors');
+const cookies = require("cookie-parser");
+
+const app = express()
+app.use(express.json())
+app.use(express.urlencoded({extended: true}))
+app.use(cookies());
+
+const corsOptions = {
+  origin: 'http://localhost:4200',
+  credentials: true,
+};
+app.use(cors(corsOptions));
 module.exports = {
   /**
    * An asynchronous register function that runs before

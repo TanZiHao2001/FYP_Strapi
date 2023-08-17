@@ -10,10 +10,15 @@
     "strapi": "strapi"
   },
   "dependencies": {
+    "@hapi/joi": "^17.1.1",
     "@strapi/plugin-graphql": "^4.12.4",
     "@strapi/plugin-i18n": "4.12.4",
     "@strapi/plugin-users-permissions": "4.12.4",
     "@strapi/strapi": "4.12.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "http-errors": "^2.0.0",
     "mysql": "2.18.1",
     "strapi-plugin-custom-api": "^1.0.4",
     "strapi-plugin-transformer": "^3.1.0"
