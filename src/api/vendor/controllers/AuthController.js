@@ -5,6 +5,22 @@ const cookie = require("cookie-parser")
 const {sanitize} = require('@strapi/utils')
 const {contentAPI} = sanitize;
 const bcrypt = require('bcryptjs');
+const cron = require("node-cron");
+
+cron.schedule('* * * * *', async () => {
+  const result = await strapi.db.query('api::vendor.vendor').findMany({ 
+    where:{
+      status: {
+        $eq: "Approved",
+      }
+    }
+  });
+  const emailArr = result.map(item => item.email);
+  for (const email of emailArr){
+    console.log(email);
+  }
+  
+});
 
 module.exports = {
   refreshToken: async (ctx) => {
