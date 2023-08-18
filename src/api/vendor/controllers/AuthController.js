@@ -1,42 +1,77 @@
 const createError = require("http-errors");
-const {verifyRefreshToken, signAccessToken, signRefreshToken} = require("../helpers/jwt_helper");
-const {authSchema} = require("../helpers/validation_schema");
-const cookie = require("cookie-parser")
-const {sanitize} = require('@strapi/utils')
-const {contentAPI} = sanitize;
-const bcrypt = require('bcryptjs');
+const {
+  verifyRefreshToken,
+  signAccessToken,
+  signRefreshToken,
+} = require("../helpers/jwt_helper");
+const { authSchema } = require("../helpers/validation_schema");
+const cookie = require("cookie-parser");
+const { sanitize } = require("@strapi/utils");
+const { contentAPI } = sanitize;
+const bcrypt = require("bcryptjs");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
+const JWT = require('jsonwebtoken')
 
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
   auth: {
     user: "sendemail350@gmail.com",
-    pass: "kjhigtncoovkicff",  //update in .env
+    pass: "kjhigtncoovkicff", //update in .env
   },
 });
 
-// Setup email data
-const mailOptions = {
-  from: "sendemail350@gmail.com",
-  to: "yoridayaoi@gmail.com",
-  subject: "Test Email",
-  text: "Hello, this is a test email.",
-};
-
-
-cron.schedule('0 8 * * 1-5', async () => {
-  const result = await strapi.db.query('api::vendor.vendor').findMany({ 
-    where:{
+cron.schedule("0 8 * * 1-5", async () => {
+  const result = await strapi.db.query("api::vendor.vendor").findMany({
+    where: {
       status: {
         $eq: "Approved",
-      }
-    }
+      },
+    },
   });
-  const emailArr = result.map(item => item.email);
-  for (const email of emailArr){
-    console.log(email);
-  }
+
+  const emailArr = result.map((item) => item.email);
+  const id = result.map((item) => item.id);
+  const verifyToken = await signAccessToken(id[0]);
+  const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
+
+  const output = `
+  <html>
+    <head>
+      <style>
+        .button {
+          display: inline-block;
+          padding: 10px 20px;
+          background-color: #3498db;
+          color: #ffffff;
+          border: none;
+          border-radius: 4px;
+          font-size: 16px;
+          cursor: pointer;
+          text-align: center;
+          text-decoration: none;
+        }
+        .button:hover {
+          background-color: #2980b9;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>You have been approved! Follow the link to set your password.</h1>
+      <a href="${link}" class="button">Click here to set password</a>
+      <h3>This is a test</h3>
+    </body>
+  </html>
+`;
+  console.log(verifyToken);
+  // Setup email data
+  const mailOptions = {
+    from: "sendemail350@gmail.com",
+    to: "yoridayaoi@gmail.com",
+    subject: "Test Email",
+    html: output,
+  };
+  
   // Send the email
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -50,7 +85,7 @@ cron.schedule('0 8 * * 1-5', async () => {
 module.exports = {
   refreshToken: async (ctx) => {
     try {
-      const {refreshToken} = ctx.request.body;
+      const { refreshToken } = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
       const userId = await verifyRefreshToken(refreshToken);
@@ -58,27 +93,27 @@ module.exports = {
       const accessToken = await signAccessToken(userId);
       const refToken = await signRefreshToken(userId);
 
-      ctx.cookies.set('accessToken', accessToken + '', {
+      ctx.cookies.set("accessToken", accessToken + "", {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24, // 1 day in seconds
-        path: '/',
+        path: "/",
       });
 
-      ctx.cookies.set('refreshToken', refToken + '', {
+      ctx.cookies.set("refreshToken", refToken + "", {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-        path: '/',
+        path: "/",
       });
 
-      ctx.send({message: 'New access token created'});
+      ctx.send({ message: "New access token created" });
     } catch (error) {
       // Handle errors accordingly
       ctx.response.status = error.status || 500;
-      ctx.response.body = {error: error.message || 'Internal Server Error'};
+      ctx.response.body = { error: error.message || "Internal Server Error" };
     }
   },
 
@@ -89,71 +124,80 @@ module.exports = {
     }
     try {
       const { email, password } = ctx.request.body;
-      if(!validateEmail(email)){
-        throw new Error('Please enter a valid email!');
+      if (!validateEmail(email)) {
+        throw new Error("Please enter a valid email!");
       }
-      if(email.length == 0){
-        throw new Error('Email cannot be empty!');
+      if (email.length == 0) {
+        throw new Error("Email cannot be empty!");
       }
-      if(password.length == 0){
-        throw new Error('Password cannot be empty!');
+      if (password.length == 0) {
+        throw new Error("Password cannot be empty!");
       }
       ctx.request.query.filters = {
         email: {
-            $eq: email
-        }
-      }
+          $eq: email,
+        },
+      };
 
-      const contentType = strapi.contentType('api::vendor.vendor')
-      const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
-      const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
-      
-      if(entities.length === 0){
-        throw new Error('Invalid email / password');
+      const contentType = strapi.contentType("api::vendor.vendor");
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.query,
+        contentType
+      );
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+
+      if (entities.length === 0) {
+        throw new Error("Invalid email / password");
       }
-      const isPasswordValid = await bcrypt.compare(password, entities[0].password);
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        entities[0].password
+      );
       if (!isPasswordValid) {
-        throw new Error('Invalid email / password');
+        throw new Error("Invalid email / password");
       }
 
       const accessToken = await signAccessToken(entities[0].id);
       const refreshToken = await signRefreshToken(entities[0].id);
 
-      ctx.cookies.set('accessToken', accessToken + '', {
+      ctx.cookies.set("accessToken", accessToken + "", {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24, // 1 day in seconds
-        path: '/',
+        path: "/",
       });
 
-      ctx.cookies.set('refreshToken', refreshToken + '', {
+      ctx.cookies.set("refreshToken", refreshToken + "", {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-        path: '/',
+        path: "/",
       });
 
-      await strapi.entityService.update('api::vendor.vendor', entities[0].id, {
+      await strapi.entityService.update("api::vendor.vendor", entities[0].id, {
         data: {
           refresh_token: refreshToken,
-        }
+        },
       });
-      ctx.send({message: 'successfully logged in'});
+      ctx.send({ message: "successfully logged in" });
     } catch (error) {
       if (error) {
         // If it's a validation error
         ctx.response.status = 200; //initially 400
-        ctx.response.body = {error: error.message};
+        ctx.response.body = { error: error.message };
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = {error: 'Internal Server Error'};
+        ctx.response.body = { error: "Internal Server Error" };
       }
     }
   },
-  
+
   register: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
@@ -163,97 +207,114 @@ module.exports = {
       console.log(ctx.request.body);
       const { email, password, organisation } = ctx.request.body;
 
-      if(!validateEmail(email)){
-        throw new Error('Please enter a valid email!');
+      if (!validateEmail(email)) {
+        throw new Error("Please enter a valid email!");
       }
-      const result = await strapi.db.query('api::vendor.vendor').findMany({ 
-        where:{
+      const result = await strapi.db.query("api::vendor.vendor").findMany({
+        where: {
           email: {
             $eq: email,
-          }
-        }
+          },
+        },
       });
-      console.log(result)
+      console.log(result);
       if (result.length !== 0) {
-        throw new Error('Email already existed!');
+        throw new Error("Email already existed!");
       }
-      const entry = await strapi.entityService.create('api::vendor.vendor', {
-        data:{
+      const entry = await strapi.entityService.create("api::vendor.vendor", {
+        data: {
           email: email,
           username: email.split("@")[0],
           organisation: organisation,
           status: "Pending",
-          publishedAt: Date.now()
+          publishedAt: Date.now(),
         },
       });
 
       const accessToken = await signAccessToken(entry.id);
       const refreshToken = await signRefreshToken(entry.id);
 
-      ctx.cookies.set('accessToken', accessToken + '', {
+      ctx.cookies.set("accessToken", accessToken + "", {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24, // 1 day in seconds
-        path: '/',
+        path: "/",
       });
 
-      ctx.cookies.set('refreshToken', refreshToken + '', {
+      ctx.cookies.set("refreshToken", refreshToken + "", {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: "strict",
         maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-        path: '/',
+        path: "/",
       });
 
-      await strapi.entityService.update('api::vendor.vendor', entry.id, {
+      await strapi.entityService.update("api::vendor.vendor", entry.id, {
         data: {
           refresh_token: refreshToken,
-        }
+        },
       });
-      ctx.send({message: 'Vendor created'});
+      ctx.send({ message: "Vendor created" });
     } catch (error) {
       if (error) {
         // Set the status and error message properly
         ctx.response.status = 200; //422
-        ctx.response.body = {error: error.message};
+        ctx.response.body = { error: error.message };
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = {error: 'Internal Server Error'};
+        ctx.response.body = { error: "Internal Server Error" };
       }
     }
   },
 
   setPassword: async (ctx) => {
     try {
-      const password = ctx.request.body.password;
-
-      if (!password || password.length <= 0){
-        throw new Error('Password cannot be empty!');
+      const { password, verifyToken } = ctx.request.body;
+      var id = -1;
+      if (!password || password.length <= 0) {
+        throw new Error("Password cannot be empty!");
       }
-      await strapi.entityService.update('api::vendor.vendor', 6, {
-        data: {
-          password: password,
+
+      if(!verifyToken){
+        throw new Error('Token not found!');
+      }
+
+      JWT.verify(verifyToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          // Token verification failed, handle error
+          console.error(err);
+          throw new Error(err);
+        } else {
+          // Token verification successful, get user ID from decoded payload
+          const userId = decoded.aud; // Assuming 'aud' contains the user ID
+          console.log(`User ID: ${userId}`);
+          id = userId;
+          
         }
       });
-      ctx.send({message: 'Successful'});
+      await strapi.entityService.update("api::vendor.vendor", id, {
+        data: {
+          password: password,
+        },
+      });
+      ctx.send({ message: "Successful" });
     } catch (error) {
       if (error) {
         // Set the status and error message properly
         ctx.response.status = 200; //422
-        ctx.response.body = {error: error.message};
+        ctx.response.body = { error: error.message };
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = {error: 'Internal Server Error'};
+        ctx.response.body = { error: "Internal Server Error" };
       }
     }
   },
-
   logout: async (ctx) => {
     try {
-      const {refreshToken} = ctx.request.body;
+      const { refreshToken } = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
       const userId = await verifyRefreshToken(refreshToken);
@@ -261,11 +322,11 @@ module.exports = {
       // TODO: Implement logic to delete refresh token from the database
 
       ctx.response.status = 204; // No content
-      ctx.send({message: 'logout'});
+      ctx.send({ message: "logout" });
     } catch (error) {
       // Handle errors accordingly
       ctx.response.status = error.status || 500;
-      ctx.response.body = {error: error.message || 'Internal Server Error'};
+      ctx.response.body = { error: error.message || "Internal Server Error" };
     }
-  }
-}
+  },
+};
