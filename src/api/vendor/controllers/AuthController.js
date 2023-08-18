@@ -3,8 +3,7 @@ const {
   verifyRefreshToken,
   signAccessToken,
   signRefreshToken,
-} = require("../helpers/jwt_helper");
-const {authSchema} = require("../helpers/validation_schema");
+} = require("../../jwt_helper");
 const cookie = require("cookie-parser");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
@@ -82,6 +81,31 @@ cron.schedule("0 8 * * 1-5", async () => {
   });
 });
 
+function validateEmail(email) {
+  var re = /\S+@\S+\.\S+/;
+  return re.test(email);
+}
+
+function setCookieAccessToken(ctx, accessToken) {
+  ctx.cookies.set("accessToken", accessToken + "", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
+    path: "/",
+  });
+}
+
+function setCookieRefreshToken(ctx, refreshToken) {
+  ctx.cookies.set("refreshToken", refreshToken + "", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
+    path: "/",
+  });
+}
+
 module.exports = {
   refreshToken: async (ctx) => {
     try {
@@ -93,21 +117,8 @@ module.exports = {
       const accessToken = await signAccessToken(userId);
       const refToken = await signRefreshToken(userId);
 
-      ctx.cookies.set("accessToken", accessToken + "", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
-        path: "/",
-      });
-
-      ctx.cookies.set("refreshToken", refToken + "", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 365 * 1000, // 1 year in seconds
-        path: "/",
-      });
+      setCookieAccessToken(ctx, accessToken);
+      setCookieRefreshToken(ctx, refreshToken);
 
       ctx.send({message: "New access token created"});
     } catch (error) {
@@ -117,11 +128,6 @@ module.exports = {
     }
   },
   login: async (ctx) => {
-    function validateEmail(email) {
-      var re = /\S+@\S+\.\S+/;
-      return re.test(email);
-    }
-
     try {
       const {email, password} = ctx.request.body;
       if (!validateEmail(email)) {
@@ -167,21 +173,8 @@ module.exports = {
       const accessToken = await signAccessToken(entities[0].id);
       const refreshToken = await signRefreshToken(entities[0].id);
 
-      ctx.cookies.set("accessToken", accessToken + "", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
-        path: "/",
-      });
-
-      ctx.cookies.set("refreshToken", refreshToken + "", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
-        path: "/",
-      });
+      setCookieAccessToken(ctx, accessToken);
+      setCookieRefreshToken(ctx, refreshToken);
 
       await strapi.entityService.update("api::vendor.vendor", entities[0].id, {
         data: {
@@ -203,11 +196,6 @@ module.exports = {
     }
   },
   register: async (ctx) => {
-    function validateEmail(email) {
-      var re = /\S+@\S+\.\S+/;
-      return re.test(email);
-    }
-
     try {
       console.log(ctx.request.body);
       const {email, password, organisation} = ctx.request.body;
@@ -239,21 +227,8 @@ module.exports = {
       const accessToken = await signAccessToken(entry.id);
       const refreshToken = await signRefreshToken(entry.id);
 
-      ctx.cookies.set("accessToken", accessToken + "", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
-        path: "/",
-      });
-
-      ctx.cookies.set("refreshToken", refreshToken + "", {
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
-        path: "/",
-      });
+      setCookieAccessToken(ctx, accessToken);
+      setCookieRefreshToken(ctx, refreshToken);
 
       await strapi.entityService.update("api::vendor.vendor", entry.id, {
         data: {
@@ -288,15 +263,12 @@ module.exports = {
 
       JWT.verify(verifyToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          // Token verification failed, handle error
           console.error(err);
           throw new Error(err);
         } else {
-          // Token verification successful, get user ID from decoded payload
-          const userId = decoded.aud; // Assuming 'aud' contains the user ID
+          const userId = decoded.aud; 
           console.log(`User ID: ${userId}`);
           id = userId;
-
         }
       });
       await strapi.entityService.update("api::vendor.vendor", id, {
