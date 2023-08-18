@@ -10,6 +10,7 @@ const {sanitize} = require('@strapi/utils')
 const {contentAPI} = sanitize;
 const cookie = require('cookie');
 const createError = require("http-errors");
+const {getVendorIdFromAccessToken} = require("../../jwt_helper");
 
 module.exports = createCoreController('api::project.project', ({strapi}) => ({
 
@@ -19,16 +20,7 @@ module.exports = createCoreController('api::project.project', ({strapi}) => ({
     const parsedCookies = cookie.parse(ctx.request.header.cookie);
     const accessToken = parsedCookies.accessToken;
 
-    jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, payload) => {
-      if (err) {
-        if (err.name === 'JsonWebTokenError') {
-          return next(createError.Unauthorized())
-        } else {
-          return next(createError.Unauthorized(err.message))
-        }
-      }
-      vendorId = payload.aud;
-    })
+    vendorId = await getVendorIdFromAccessToken(accessToken)
 
     ctx.request.query = {
       filters: {
@@ -46,7 +38,6 @@ module.exports = createCoreController('api::project.project', ({strapi}) => ({
       }
     }
 
-
     const contentType = strapi.contentType('api::project.project')
     const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
     const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
@@ -58,5 +49,4 @@ module.exports = createCoreController('api::project.project', ({strapi}) => ({
 
     return result;
   }
-
 }));
