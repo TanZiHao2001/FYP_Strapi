@@ -1,5 +1,5 @@
 const createError = require("http-errors");
-const {signAccessToken, signRefreshToken, getVendorIdFromToken} = require("../../jwt_helper");
+const {signToken, getVendorIdFromToken} = require("../../jwt_helper");
 const cookie = require("cookie-parser");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
@@ -27,7 +27,7 @@ cron.schedule("0 8 * * 1-5", async () => {
 
   const emailArr = result.map((item) => item.email);
   const id = result.map((item) => item.id);
-  const verifyToken = await signAccessToken(id[0]);
+  const verifyToken = await signToken('accessToken', id[0]);
   const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
 
   const output = `
@@ -100,8 +100,8 @@ module.exports = {
 
       const userId = await getVendorIdFromToken('refreshToken', refreshToken);
 
-      const accessToken = await signAccessToken(userId);
-      const refToken = await signRefreshToken(userId);
+      const accessToken = await signToken('accessToken', userId);
+      const refToken = await signToken('refreshToken', userId);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refToken);
@@ -153,8 +153,8 @@ module.exports = {
         throw new Error("Invalid email / password");
       }
 
-      const accessToken = await signAccessToken(entities[0].id);
-      const refreshToken = await signRefreshToken(entities[0].id);
+      const accessToken = await signToken('accessToken',entities[0].id);
+      const refreshToken = await signToken('refreshToken',entities[0].id);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refreshToken);
@@ -207,8 +207,8 @@ module.exports = {
         },
       });
 
-      const accessToken = await signAccessToken(entry.id);
-      const refreshToken = await signRefreshToken(entry.id);
+      const accessToken = await signToken('accessToken',entry.id);
+      const refreshToken = await signToken('refreshToken',entry.id);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refreshToken);
