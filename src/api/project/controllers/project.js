@@ -20,7 +20,9 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
       const accessToken = parsedCookies.accessToken;
 
       vendorId = await getVendorIdFromToken('accessToken', accessToken);
-
+      if(!vendorId) {
+        throw new Error ('Unauthorised!');
+      }
       ctx.request.query = {
         filters: {
           vendor_id: {
@@ -62,7 +64,7 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
       if (error) {
         // If it's a validation error
         ctx.response.status = 200; //initially 204
-        ctx.response.body = {error: 'hi'};
+        ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
