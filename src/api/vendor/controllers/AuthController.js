@@ -6,8 +6,26 @@ const {sanitize} = require('@strapi/utils')
 const {contentAPI} = sanitize;
 const bcrypt = require('bcryptjs');
 const cron = require("node-cron");
+const nodemailer = require("nodemailer");
 
-cron.schedule('0 8 * * 1-5', async () => {
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // Use the email service you prefer
+  auth: {
+    user: "sendemail350@gmail.com",
+    pass: "kjhigtncoovkicff",  //update in .env
+  },
+});
+
+// Setup email data
+const mailOptions = {
+  from: "sendemail350@gmail.com",
+  to: "yoridayaoi@gmail.com",
+  subject: "Test Email",
+  text: "Hello, this is a test email.",
+};
+
+
+cron.schedule('* * * * *', async () => {
   const result = await strapi.db.query('api::vendor.vendor').findMany({ 
     where:{
       status: {
@@ -19,7 +37,14 @@ cron.schedule('0 8 * * 1-5', async () => {
   for (const email of emailArr){
     console.log(email);
   }
-  
+  // Send the email
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
 });
 
 module.exports = {
@@ -56,6 +81,7 @@ module.exports = {
       ctx.response.body = {error: error.message || 'Internal Server Error'};
     }
   },
+
   login: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
@@ -198,10 +224,11 @@ module.exports = {
       }
     }
   },
+
   setPassword: async (ctx) => {
     try {
       const password = ctx.request.body.password;
-      
+
       if (!password || password.length <= 0){
         throw new Error('Password cannot be empty!');
       }
@@ -223,6 +250,7 @@ module.exports = {
       }
     }
   },
+
   logout: async (ctx) => {
     try {
       const {refreshToken} = ctx.request.body;
