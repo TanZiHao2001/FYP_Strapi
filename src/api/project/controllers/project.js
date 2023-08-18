@@ -48,17 +48,16 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         contentType.uid,
         sanitizedQueryParams
       );
+      console.log(entities);
 
-      if (!entities) {
-        return [];
-      }
       const result = await contentAPI.output(entities, contentType);
-      result[0].tokens.sort(
-        (a, b) => new Date(b.created_date) - new Date(a.created_date)
-      );
-      result[0].token = result[0].tokens[0].token;
-      delete result[0].tokens;
-
+      if(result.length > 0){
+        result[0].tokens.sort(
+          (a, b) => new Date(b.created_date) - new Date(a.created_date)
+        );
+        result[0].token = result[0].tokens[0].token;
+        delete result[0].tokens;
+      }
       return result;
     } catch (error) {
       if (error) {
