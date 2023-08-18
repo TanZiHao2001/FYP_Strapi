@@ -4,22 +4,22 @@
  * project controller
  */
 
-const { createCoreController } = require("@strapi/strapi").factories;
+const {createCoreController} = require("@strapi/strapi").factories;
 const jwt = require("jsonwebtoken");
-const { sanitize } = require("@strapi/utils");
-const { contentAPI } = sanitize;
+const {sanitize} = require("@strapi/utils");
+const {contentAPI} = sanitize;
 const cookie = require("cookie");
 const createError = require("http-errors");
-const { getVendorIdFromAccessToken } = require("../../jwt_helper");
+const {getVendorIdFromToken} = require("../../jwt_helper");
 
-module.exports = createCoreController("api::project.project", ({ strapi }) => ({
+module.exports = createCoreController("api::project.project", ({strapi}) => ({
   async find(ctx) {
     try {
       let vendorId;
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const accessToken = parsedCookies.accessToken;
 
-      vendorId = await getVendorIdFromAccessToken(accessToken);
+      vendorId = await getVendorIdFromToken('accessToken', accessToken);
 
       ctx.request.query = {
         filters: {
@@ -62,11 +62,11 @@ module.exports = createCoreController("api::project.project", ({ strapi }) => ({
       if (error) {
         // If it's a validation error
         ctx.response.status = 200; //initially 204
-        ctx.response.body = { error: 'hi' };
+        ctx.response.body = {error: 'hi'};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = { error: "Internal Server Error" };
+        ctx.response.body = {error: "Internal Server Error"};
       }
     }
   },

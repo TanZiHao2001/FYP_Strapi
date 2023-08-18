@@ -1,9 +1,5 @@
 const createError = require("http-errors");
-const {
-  verifyRefreshToken,
-  signAccessToken,
-  signRefreshToken,
-} = require("../../jwt_helper");
+const {signAccessToken, signRefreshToken, getVendorIdFromToken} = require("../../jwt_helper");
 const cookie = require("cookie-parser");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
@@ -102,7 +98,7 @@ module.exports = {
       const {refreshToken} = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
-      const userId = await verifyRefreshToken(refreshToken);
+      const userId = await getVendorIdFromToken('refreshToken', refreshToken);
 
       const accessToken = await signAccessToken(userId);
       const refToken = await signRefreshToken(userId);
@@ -248,13 +244,8 @@ module.exports = {
         throw new Error('Token not found!');
       }
 
-      JWT.verify(verifyToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if (err) {
-          throw new Error(err);
-        } else {
-          id = decoded.aud;
-        }
-      });
+      id = await getVendorIdFromToken('accessToken', verifyToken);
+
       await strapi.entityService.update("api::vendor.vendor", id, {
         data: {
           password: password,
@@ -278,7 +269,7 @@ module.exports = {
       const {refreshToken} = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
-      const userId = await verifyRefreshToken(refreshToken);
+      const userId = await getVendorIdFromToken('refreshToken', refreshToken);
 
       // TODO: Implement logic to delete refresh token from the database
 
