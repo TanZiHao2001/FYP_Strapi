@@ -25,7 +25,7 @@ const mailOptions = {
 };
 
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 8 * * 1-5', async () => {
   const result = await strapi.db.query('api::vendor.vendor').findMany({ 
     where:{
       status: {
@@ -144,11 +144,11 @@ module.exports = {
     } catch (error) {
       if (error) {
         // If it's a validation error
-        ctx.response.status = 400;
+        ctx.response.status = 200; //initially 400
         ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
-        ctx.response.status = 500;
+        ctx.response.status = 200; //500
         ctx.response.body = {error: 'Internal Server Error'};
       }
     }
@@ -215,11 +215,11 @@ module.exports = {
     } catch (error) {
       if (error) {
         // Set the status and error message properly
-        ctx.response.status = 422;
+        ctx.response.status = 200; //422
         ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
-        ctx.response.status = 500;
+        ctx.response.status = 200; //500
         ctx.response.body = {error: 'Internal Server Error'};
       }
     }
@@ -241,11 +241,11 @@ module.exports = {
     } catch (error) {
       if (error) {
         // Set the status and error message properly
-        ctx.response.status = 422;
+        ctx.response.status = 200; //422
         ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
-        ctx.response.status = 500;
+        ctx.response.status = 200; //500
         ctx.response.body = {error: 'Internal Server Error'};
       }
     }
