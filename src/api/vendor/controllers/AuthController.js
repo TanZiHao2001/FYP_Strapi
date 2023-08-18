@@ -7,7 +7,7 @@ const {contentAPI} = sanitize;
 const bcrypt = require('bcryptjs');
 const cron = require("node-cron");
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 8 * * 1-5', async () => {
   const result = await strapi.db.query('api::vendor.vendor').findMany({ 
     where:{
       status: {
@@ -62,12 +62,6 @@ module.exports = {
       return re.test(email);
     }
     try {
-      // TODO: Implement user authentication using Strapi's authentication mechanisms
-      // For example, you can use: const user = await strapi.plugins['users-permissions'].services.user.fetch({ email });
-      // and check the password using: const isMatch = await strapi.plugins['users-permissions'].services.user.validatePassword(password, user.password);
-      //
-      // if (!user) throw strapi.errors.notFound('User not registered');
-      // if (!isMatch) throw strapi.errors.unauthorized('Username/Password invalid');
       const { email, password } = ctx.request.body;
       if(!validateEmail(email)){
         throw new Error('Please enter a valid email!');
@@ -95,7 +89,7 @@ module.exports = {
       if (!isPasswordValid) {
         throw new Error('Invalid email / password');
       }
-      // TODO: should put user id
+
       const accessToken = await signAccessToken(entities[0].id);
       const refreshToken = await signRefreshToken(entities[0].id);
 
@@ -121,10 +115,9 @@ module.exports = {
         }
       });
       ctx.send({message: 'successfully logged in'});
-      //ctx.send({entities});
     } catch (error) {
       if (error) {
-        // If it's a validation error (Joi)
+        // If it's a validation error
         ctx.response.status = 400;
         ctx.response.body = {error: error.message};
       } else {
@@ -134,78 +127,7 @@ module.exports = {
       }
     }
   },
-  // register: async (ctx) => {
-  //   function validateEmail(email) {
-  //     var re = /\S+@\S+\.\S+/;
-  //     return re.test(email);
-  //   }
-  //   try {
-  //     console.log(ctx.request.body);
-  //     const { email, password, organisation } = ctx.request.body;
-
-  //     if(!validateEmail(email)){
-  //       throw new Error('Please enter a valid email!');
-  //     }
-  //     const result = await strapi.db.query('api::vendor.vendor').findMany({ 
-  //       where:{
-  //         email: {
-  //           $eq: email,
-  //         }
-  //       }
-  //     });
-  //     console.log(result)
-  //     if (result.length !== 0) {
-  //       throw new Error('Email already existed!');
-  //     }
-  //     const entry = await strapi.entityService.create('api::vendor.vendor', {
-  //       data:{
-  //         email: email,
-  //         password: password,
-  //         username: email.split("@")[0],
-  //         organisation: organisation,
-  //         status: "Pending",
-  //         publishedAt: Date.now()
-  //       },
-  //     });
-
-  //     const accessToken = await signAccessToken(entry.id);
-  //     const refreshToken = await signRefreshToken(entry.id);
-
-  //     ctx.cookies.set('accessToken', accessToken + '', {
-  //       httpOnly: true,
-  //       secure: false,
-  //       sameSite: 'strict',
-  //       maxAge: 60 * 60 * 24, // 1 day in seconds
-  //       path: '/',
-  //     });
-
-  //     ctx.cookies.set('refreshToken', refreshToken + '', {
-  //       httpOnly: true,
-  //       secure: false,
-  //       sameSite: 'strict',
-  //       maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
-  //       path: '/',
-  //     });
-
-  //     await strapi.entityService.update('api::vendor.vendor', entry.id, {
-  //       data: {
-  //         refresh_token: refreshToken,
-  //       }
-  //     });
-  //     ctx.send({message: 'Vendor created'});
-  //   } catch (error) {
-  //     if (error) {
-  //       // Set the status and error message properly
-  //       ctx.response.status = 422;
-  //       ctx.response.body = {error: error.message};
-  //       // ctx.send({message: error})
-  //     } else {
-  //       // Handle other errors accordingly
-  //       ctx.response.status = 500;
-  //       ctx.response.body = {error: 'Internal Server Error'};
-  //     }
-  //   }
-  // },
+  
   register: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
@@ -269,7 +191,6 @@ module.exports = {
         // Set the status and error message properly
         ctx.response.status = 422;
         ctx.response.body = {error: error.message};
-        // ctx.send({message: error})
       } else {
         // Handle other errors accordingly
         ctx.response.status = 500;
@@ -279,12 +200,14 @@ module.exports = {
   },
   setPassword: async (ctx) => {
     try {
-      //console.log(ctx.request.body);
-      //const { email, password, organisation } = ctx.request.body;
-
+      const password = ctx.request.body.password;
+      
+      if (!password || password.length <= 0){
+        throw new Error('Password cannot be empty!');
+      }
       await strapi.entityService.update('api::vendor.vendor', 6, {
         data: {
-          password: ctx.request.password,
+          password: password,
         }
       });
       ctx.send({message: 'Successful'});
@@ -293,7 +216,6 @@ module.exports = {
         // Set the status and error message properly
         ctx.response.status = 422;
         ctx.response.body = {error: error.message};
-        // ctx.send({message: error})
       } else {
         // Handle other errors accordingly
         ctx.response.status = 500;
