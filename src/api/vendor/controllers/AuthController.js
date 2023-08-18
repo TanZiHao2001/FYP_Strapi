@@ -4,10 +4,10 @@ const {
   signAccessToken,
   signRefreshToken,
 } = require("../helpers/jwt_helper");
-const { authSchema } = require("../helpers/validation_schema");
+const {authSchema} = require("../helpers/validation_schema");
 const cookie = require("cookie-parser");
-const { sanitize } = require("@strapi/utils");
-const { contentAPI } = sanitize;
+const {sanitize} = require("@strapi/utils");
+const {contentAPI} = sanitize;
 const bcrypt = require("bcryptjs");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
@@ -71,7 +71,7 @@ cron.schedule("0 8 * * 1-5", async () => {
     subject: "Test Email",
     html: output,
   };
-  
+
   // Send the email
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -85,7 +85,7 @@ cron.schedule("0 8 * * 1-5", async () => {
 module.exports = {
   refreshToken: async (ctx) => {
     try {
-      const { refreshToken } = ctx.request.body;
+      const {refreshToken} = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
       const userId = await verifyRefreshToken(refreshToken);
@@ -109,29 +109,29 @@ module.exports = {
         path: "/",
       });
 
-      ctx.send({ message: "New access token created" });
+      ctx.send({message: "New access token created"});
     } catch (error) {
       // Handle errors accordingly
       ctx.response.status = error.status || 500;
-      ctx.response.body = { error: error.message || "Internal Server Error" };
+      ctx.response.body = {error: error.message || "Internal Server Error"};
     }
   },
-
   login: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
       return re.test(email);
     }
+
     try {
-      const { email, password } = ctx.request.body;
+      const {email, password} = ctx.request.body;
       if (!validateEmail(email)) {
         throw new Error("Please enter a valid email!");
       }
-      if (email.length == 0) {
-        throw new Error("Email cannot be empty!");
+      if (email.length === 0) {
+        throw new Error('Email cannot be empty!');
       }
-      if (password.length == 0) {
-        throw new Error("Password cannot be empty!");
+      if (password.length === 0) {
+        throw new Error('Password cannot be empty!');
       }
       ctx.request.query.filters = {
         email: {
@@ -151,6 +151,10 @@ module.exports = {
 
       if (entities.length === 0) {
         throw new Error("Invalid email / password");
+      }
+
+      if (entities.length === 0) {
+        throw new Error('Invalid email / password');
       }
       const isPasswordValid = await bcrypt.compare(
         password,
@@ -184,33 +188,34 @@ module.exports = {
           refresh_token: refreshToken,
         },
       });
-      ctx.send({ message: "successfully logged in" });
-    } catch (error) {
+      ctx.send({message: "successfully logged in"});
+    } catch
+      (error) {
       if (error) {
         // If it's a validation error
         ctx.response.status = 200; //initially 400
-        ctx.response.body = { error: error.message };
+        ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = { error: "Internal Server Error" };
+        ctx.response.body = {error: "Internal Server Error"};
       }
     }
   },
-
   register: async (ctx) => {
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
       return re.test(email);
     }
+
     try {
       console.log(ctx.request.body);
-      const { email, password, organisation } = ctx.request.body;
+      const {email, password, organisation} = ctx.request.body;
 
       if (!validateEmail(email)) {
         throw new Error("Please enter a valid email!");
       }
-      const result = await strapi.db.query("api::vendor.vendor").findMany({
+      const result = await strapi.db.query('api::vendor.vendor').findMany({
         where: {
           email: {
             $eq: email,
@@ -255,29 +260,29 @@ module.exports = {
           refresh_token: refreshToken,
         },
       });
-      ctx.send({ message: "Vendor created" });
-    } catch (error) {
+      ctx.send({message: "Vendor created"});
+    } catch
+      (error) {
       if (error) {
         // Set the status and error message properly
         ctx.response.status = 200; //422
-        ctx.response.body = { error: error.message };
+        ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = { error: "Internal Server Error" };
+        ctx.response.body = {error: "Internal Server Error"};
       }
     }
   },
-
   setPassword: async (ctx) => {
     try {
-      const { password, verifyToken } = ctx.request.body;
+      const {password, verifyToken} = ctx.request.body;
       var id = -1;
       if (!password || password.length <= 0) {
         throw new Error("Password cannot be empty!");
       }
 
-      if(!verifyToken){
+      if (!verifyToken) {
         throw new Error('Token not found!');
       }
 
@@ -291,7 +296,7 @@ module.exports = {
           const userId = decoded.aud; // Assuming 'aud' contains the user ID
           console.log(`User ID: ${userId}`);
           id = userId;
-          
+
         }
       });
       await strapi.entityService.update("api::vendor.vendor", id, {
@@ -299,22 +304,22 @@ module.exports = {
           password: password,
         },
       });
-      ctx.send({ message: "Successful" });
+      ctx.send({message: "Successful"});
     } catch (error) {
       if (error) {
         // Set the status and error message properly
         ctx.response.status = 200; //422
-        ctx.response.body = { error: error.message };
+        ctx.response.body = {error: error.message};
       } else {
         // Handle other errors accordingly
         ctx.response.status = 200; //500
-        ctx.response.body = { error: "Internal Server Error" };
+        ctx.response.body = {error: "Internal Server Error"};
       }
     }
   },
   logout: async (ctx) => {
     try {
-      const { refreshToken } = ctx.request.body;
+      const {refreshToken} = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
       const userId = await verifyRefreshToken(refreshToken);
@@ -322,11 +327,11 @@ module.exports = {
       // TODO: Implement logic to delete refresh token from the database
 
       ctx.response.status = 204; // No content
-      ctx.send({ message: "logout" });
+      ctx.send({message: "logout"});
     } catch (error) {
       // Handle errors accordingly
       ctx.response.status = error.status || 500;
-      ctx.response.body = { error: error.message || "Internal Server Error" };
+      ctx.response.body = {error: error.message || "Internal Server Error"};
     }
   },
 };
