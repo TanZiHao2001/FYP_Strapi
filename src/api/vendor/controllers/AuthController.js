@@ -3,7 +3,6 @@ const cookie = require("cookie");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const bcrypt = require("bcryptjs");
-``
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
 
@@ -281,19 +280,26 @@ module.exports = {
   checkIsExpired: async (ctx) => {
     try {
 
+      if (ctx.request.header.cookie === undefined) {
+        throw new Error();
+      }
+
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const accessToken = parsedCookies.accessToken;
 
       if (!accessToken) {
-        ctx.send(false);
+        throw new Error();
       } else {
         const vendorId = await getVendorIdFromToken('accessToken', accessToken);
-        vendorId ? ctx.send(true) : ctx.send(false)
+        vendorId ? ctx.send(true) : ctx.send(false);
       }
     } catch (error) {
-      // Handle errors accordingly
-      ctx.response.status = error.status || 500;
-      ctx.response.body = {error: error.message || "Internal Server Error"};
+      if (error.message) {
+        ctx.response.status = error.status || 500;
+        ctx.response.body = {error: error.message};
+      } else {
+        ctx.send(false);
+      }
     }
   }
 };
