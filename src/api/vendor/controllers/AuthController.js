@@ -1,12 +1,10 @@
-const createError = require("http-errors");
 const {signToken, getVendorIdFromToken} = require("../../jwt_helper");
 const cookie = require("cookie-parser");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");``
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
-const JWT = require('jsonwebtoken')
 
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
@@ -58,7 +56,6 @@ cron.schedule("0 8 * * 1-5", async () => {
     </body>
   </html>
 `;
-  console.log(verifyToken);
   // Setup email data
   const mailOptions = {
     from: "sendemail350@gmail.com",
@@ -180,7 +177,6 @@ module.exports = {
   },
   register: async (ctx) => {
     try {
-      console.log(ctx.request.body);
       const {email, password, organisation} = ctx.request.body;
 
       if (!validateEmail(email)) {
@@ -193,7 +189,7 @@ module.exports = {
           },
         },
       });
-      console.log(result);
+
       if (result.length !== 0) {
         throw new Error("Email already existed!");
       }

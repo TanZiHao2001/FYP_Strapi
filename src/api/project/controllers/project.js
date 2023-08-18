@@ -5,11 +5,9 @@
  */
 
 const {createCoreController} = require("@strapi/strapi").factories;
-const jwt = require("jsonwebtoken");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
-const createError = require("http-errors");
 const {getVendorIdFromToken} = require("../../jwt_helper");
 
 module.exports = createCoreController("api::project.project", ({strapi}) => ({
@@ -48,7 +46,6 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         contentType.uid,
         sanitizedQueryParams
       );
-      console.log(entities);
 
       const result = await contentAPI.output(entities, contentType);
       if(result.length > 0){
