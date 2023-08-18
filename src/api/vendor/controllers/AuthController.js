@@ -281,4 +281,20 @@ module.exports = {
       ctx.response.body = {error: error.message || "Internal Server Error"};
     }
   },
+  checkIsExpired: async (ctx) => {
+    try {
+      const parsedCookies = cookie.parse(ctx.request.header.cookie);
+      const accessToken = parsedCookies.accessToken;
+
+      const isTokenExpired = (accessToken) => (Date.now() >= JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString()).exp * 1000)
+
+      console.log(isTokenExpired)
+
+      ctx.send({message: "valid"});
+    } catch (error) {
+      // Handle errors accordingly
+      ctx.response.status = error.status || 500;
+      ctx.response.body = {error: error.message || "Internal Server Error"};
+    }
+  }
 };
