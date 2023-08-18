@@ -86,22 +86,12 @@ function validateEmail(email) {
   return re.test(email);
 }
 
-function setCookieAccessToken(ctx, accessToken) {
-  ctx.cookies.set("accessToken", accessToken + "", {
+function setToken(ctx, key, value) {
+  ctx.cookies.set(key, value, {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
-    path: "/",
-  });
-}
-
-function setCookieRefreshToken(ctx, refreshToken) {
-  ctx.cookies.set("refreshToken", refreshToken + "", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
+    maxAge: key === 'accessToken' ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
     path: "/",
   });
 }
@@ -117,8 +107,8 @@ module.exports = {
       const accessToken = await signAccessToken(userId);
       const refToken = await signRefreshToken(userId);
 
-      setCookieAccessToken(ctx, accessToken);
-      setCookieRefreshToken(ctx, refreshToken);
+      setToken(ctx, 'accessToken', accessToken);
+      setToken(ctx, 'refreshToken', refToken);
 
       ctx.send({message: "New access token created"});
     } catch (error) {
@@ -159,9 +149,6 @@ module.exports = {
         throw new Error("Invalid email / password");
       }
 
-      if (entities.length === 0) {
-        throw new Error('Invalid email / password');
-      }
       const isPasswordValid = await bcrypt.compare(
         password,
         entities[0].password
@@ -173,8 +160,8 @@ module.exports = {
       const accessToken = await signAccessToken(entities[0].id);
       const refreshToken = await signRefreshToken(entities[0].id);
 
-      setCookieAccessToken(ctx, accessToken);
-      setCookieRefreshToken(ctx, refreshToken);
+      setToken(ctx, 'accessToken', accessToken);
+      setToken(ctx, 'refreshToken', refreshToken);
 
       await strapi.entityService.update("api::vendor.vendor", entities[0].id, {
         data: {
@@ -227,8 +214,8 @@ module.exports = {
       const accessToken = await signAccessToken(entry.id);
       const refreshToken = await signRefreshToken(entry.id);
 
-      setCookieAccessToken(ctx, accessToken);
-      setCookieRefreshToken(ctx, refreshToken);
+      setToken(ctx, 'accessToken', accessToken);
+      setToken(ctx, 'refreshToken', refreshToken);
 
       await strapi.entityService.update("api::vendor.vendor", entry.id, {
         data: {
@@ -263,12 +250,9 @@ module.exports = {
 
       JWT.verify(verifyToken, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
         if (err) {
-          console.error(err);
           throw new Error(err);
         } else {
-          const userId = decoded.aud; 
-          console.log(`User ID: ${userId}`);
-          id = userId;
+          id = decoded.aud;
         }
       });
       await strapi.entityService.update("api::vendor.vendor", id, {
