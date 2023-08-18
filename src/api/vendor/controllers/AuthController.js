@@ -97,7 +97,7 @@ module.exports = {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24, // 1 day in seconds
+        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
         path: "/",
       });
 
@@ -105,7 +105,7 @@ module.exports = {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+        maxAge: 60 * 60 * 24 * 365 * 1000, // 1 year in seconds
         path: "/",
       });
 
@@ -171,7 +171,7 @@ module.exports = {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24, // 1 day in seconds
+        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
         path: "/",
       });
 
@@ -179,7 +179,7 @@ module.exports = {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+        maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
         path: "/",
       });
 
@@ -243,7 +243,7 @@ module.exports = {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24, // 1 day in seconds
+        maxAge: 60 * 60 * 24 * 1000, // 1 day in seconds
         path: "/",
       });
 
@@ -251,7 +251,7 @@ module.exports = {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+        maxAge: 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
         path: "/",
       });
 
