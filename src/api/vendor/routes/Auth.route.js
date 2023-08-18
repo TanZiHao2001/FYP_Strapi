@@ -51,6 +51,14 @@ module.exports = {
       config: {
         auth: false,
       }
-    }
+    },
+    {
+      method: 'POST',
+      path: '/custom/check-is-expired',
+      handler: AuthController.checkIsExpired,
+      config: {
+        auth: false,
+      }
+    },
   ]
 }

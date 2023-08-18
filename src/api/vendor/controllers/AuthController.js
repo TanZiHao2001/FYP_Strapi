@@ -1,8 +1,9 @@
 const {signToken, getVendorIdFromToken} = require("../../jwt_helper");
-const cookie = require("cookie-parser");
+const cookie = require("cookie");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
-const bcrypt = require("bcryptjs");``
+const bcrypt = require("bcryptjs");
+``
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
 
@@ -84,7 +85,7 @@ function setToken(ctx, key, value) {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
-    maxAge: key === 'accessToken' ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
+    maxAge: key === 'accessToken' ? 60 * 60 * 24 * 1000 : 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
     path: "/",
   });
 }
@@ -150,8 +151,8 @@ module.exports = {
         throw new Error("Invalid email / password");
       }
 
-      const accessToken = await signToken('accessToken',entities[0].id);
-      const refreshToken = await signToken('refreshToken',entities[0].id);
+      const accessToken = await signToken('accessToken', entities[0].id);
+      const refreshToken = await signToken('refreshToken', entities[0].id);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refreshToken);
@@ -203,8 +204,8 @@ module.exports = {
         },
       });
 
-      const accessToken = await signToken('accessToken',entry.id);
-      const refreshToken = await signToken('refreshToken',entry.id);
+      const accessToken = await signToken('accessToken', entry.id);
+      const refreshToken = await signToken('refreshToken', entry.id);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refreshToken);
@@ -279,14 +280,16 @@ module.exports = {
   },
   checkIsExpired: async (ctx) => {
     try {
+
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const accessToken = parsedCookies.accessToken;
 
-      const isTokenExpired = (accessToken) => (Date.now() >= JSON.parse(Buffer.from(accessToken.split('.')[1], 'base64').toString()).exp * 1000)
-
-      console.log(isTokenExpired)
-
-      ctx.send({message: "valid"});
+      if (!accessToken) {
+        ctx.send(false);
+      } else {
+        const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+        vendorId ? ctx.send(true) : ctx.send(false)
+      }
     } catch (error) {
       // Handle errors accordingly
       ctx.response.status = error.status || 500;
