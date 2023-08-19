@@ -4,22 +4,28 @@
  * access-control controller
  */
 const {createCoreController} = require('@strapi/strapi').factories;
-const jwt = require('jsonwebtoken');
 const {sanitize} = require('@strapi/utils')
-const {removeUserRelationFromRoleEntities} = require("@strapi/plugin-users-permissions/server/utils/sanitize/visitors");
+const {getVendorIdFromToken} = require("../../jwt_helper");
 const {contentAPI} = sanitize;
+const cookie = require("cookie");
 
 module.exports = createCoreController('api::access-control.access-control', ({strapi}) => ({
 
   async find(ctx) {
-    // const decoded = jwt.decode(ctx.request.header.authorization)
-    // const vendor_id = decoded.id;
+    let vendorId;
+    const parsedCookies = cookie.parse(ctx.request.header.cookie);
+    const accessToken = parsedCookies.accessToken;
+
+    vendorId = await getVendorIdFromToken('accessToken', accessToken);
+    if(!vendorId) {
+      throw new Error ('Unauthorised!');
+    }
 
     ctx.request.query = {
       filters: {
         vendor_id: {
           id: {
-            $eq: 1
+            $eq: vendorId,
           },
         }
       },
@@ -30,7 +36,7 @@ module.exports = createCoreController('api::access-control.access-control', ({st
         },
       }
     }
-    console.log(ctx)
+
     const contentType = strapi.contentType('api::access-control.access-control')
     const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
     const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
