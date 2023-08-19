@@ -6,6 +6,7 @@ const createError = require("http-errors");
 const bcrypt = require("bcryptjs");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
+const {errorHandler} = require('../../error_helper');
 
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
@@ -150,13 +151,7 @@ module.exports = {
       });
       return ctx.send({message: "successfully logged in"});
     } catch (error) {
-      if (error.status === 500) {
-        ctx.response.status = error.status;
-        ctx.response.body = {error: "Internal Server Error"};
-      } else {
-        ctx.response.status = error.status || 500;
-        ctx.response.body = {error: error.message || "Internal Server Error"};
-      }
+      errorHandler(ctx, error);
     }
   },
   register: async (ctx) => {

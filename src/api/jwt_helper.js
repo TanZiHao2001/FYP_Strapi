@@ -22,7 +22,7 @@ module.exports = {
   },
   getVendorIdFromToken: (type, token) => {
     return new Promise((resolve, reject) => {
-      if (!token) return new Error('No token!')
+      if (!token) resolve()
       JWT.verify(token, type === 'accessToken' ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET, (err, payload) => {
         if (err) {
           if (err.name === 'JsonWebTokenError') {
