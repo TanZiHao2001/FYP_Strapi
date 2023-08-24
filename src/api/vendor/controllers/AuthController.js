@@ -96,10 +96,13 @@ module.exports = {
       const {refreshToken} = ctx.request.body;
       if (!refreshToken) throw strapi.errors.badRequest();
 
-      const userId = await getVendorIdFromToken('refreshToken', refreshToken);
+      const vendorId = await getVendorIdFromToken('refreshToken', refreshToken);
+      if(!vendorId) {
+        throw new Error ('Unauthorised!');
+      }
 
-      const accessToken = await signToken('accessToken', userId);
-      const refToken = await signToken('refreshToken', userId);
+      const accessToken = await signToken('accessToken', vendorId);
+      const refToken = await signToken('refreshToken', vendorId);
 
       setToken(ctx, 'accessToken', accessToken);
       setToken(ctx, 'refreshToken', refToken);
@@ -251,10 +254,12 @@ module.exports = {
       if (!refreshToken) throw new Error('Token is missing!');
       //ctx.badRequest('Token is missing', { foo: 'bar' });
 
-      const userId = await getVendorIdFromToken('refreshToken', refreshToken);
-      console.log(userId);
-      // TODO: Implement logic to delete refresh token from the database
-      await strapi.entityService.update("api::vendor.vendor", userId, {
+      const vendorId = await getVendorIdFromToken('refreshToken', refreshToken);
+      if(!vendorId) {
+        throw new Error ('Unauthorised!');
+      }
+      
+      await strapi.entityService.update("api::vendor.vendor", vendorId, {
         data: {
           refresh_token: "",
         },

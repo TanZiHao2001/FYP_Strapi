@@ -46,7 +46,6 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         contentType.uid,
         sanitizedQueryParams
       );
-
       const result = await contentAPI.output(entities, contentType);
       if(result.length > 0){
         result[0].tokens.sort(
@@ -54,6 +53,10 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         );
         result[0].token = result[0].tokens[0].token;
         delete result[0].tokens;
+      }
+      // if no projects are returned
+      else{
+        throw new Error("No projects!");
       }
       return result;
     } catch (error) {
@@ -68,4 +71,6 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
       }
     }
   },
+  
+  //TODO: customise findOne method so that vendor cannot get other vendor's project
 }));
