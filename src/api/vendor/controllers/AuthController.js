@@ -247,16 +247,24 @@ module.exports = {
   logout: async (ctx) => {
     try {
       const {refreshToken} = ctx.request.body;
-      if (!refreshToken) throw strapi.errors.badRequest();
+      if (!refreshToken) throw ctx.badRequest('Token is missing', { foo: 'bar' });
 
       const userId = await getVendorIdFromToken('refreshToken', refreshToken);
 
       // TODO: Implement logic to delete refresh token from the database
+      await strapi.entityService.update("api::vendor.vendor", userId, {
+        data: {
+          refreshToken: "",
+        },
+      });
 
       ctx.response.status = 204; // No content
       ctx.send({message: "logout"});
     } catch (error) {
       // Handle errors accordingly
+      if(error){
+        ctx.send({error: error.message});
+      }
       ctx.response.status = error.status || 500;
       ctx.response.body = {error: error.message || "Internal Server Error"};
     }
