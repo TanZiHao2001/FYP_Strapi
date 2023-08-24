@@ -6,7 +6,6 @@ const createError = require("http-errors");
 const bcrypt = require("bcryptjs");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
-const {errorHandler} = require('../../error_helper');
 
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
@@ -151,7 +150,13 @@ module.exports = {
       });
       return ctx.send({message: "successfully logged in"});
     } catch (error) {
-      errorHandler(ctx, error);
+      if (error.status === 500) {
+        ctx.response.status = error.status;
+        ctx.response.body = {error: "Internal Server Error"};
+      } else {
+        ctx.response.status = error.status || 500;
+        ctx.response.body = {error: error.message || "Internal Server Error"};
+      }
     }
   },
   register: async (ctx) => {
@@ -241,24 +246,28 @@ module.exports = {
   },
   logout: async (ctx) => {
     try {
-      const {refreshToken} = ctx.request.body;
-      if (!refreshToken) throw ctx.badRequest('Token is missing', { foo: 'bar' });
+      const parsedCookies = cookie.parse(ctx.request.header.cookie);
+      const refreshToken = parsedCookies.refreshToken;
+      if (!refreshToken) throw new Error('Token is missing!');
+      //ctx.badRequest('Token is missing', { foo: 'bar' });
 
       const userId = await getVendorIdFromToken('refreshToken', refreshToken);
-
+      console.log(userId);
       // TODO: Implement logic to delete refresh token from the database
       await strapi.entityService.update("api::vendor.vendor", userId, {
         data: {
-          refreshToken: "",
+          refresh_token: "",
         },
       });
 
       ctx.response.status = 204; // No content
-      ctx.send({message: "logout"});
+      ctx.send({message: "logout successful"});
     } catch (error) {
       // Handle errors accordingly
       if(error){
-        ctx.send({error: error.message});
+        ctx.response.status = 200; //204
+        ctx.response.body = {error: error.message};
+        //ctx.send({error: error.message});
       }
       ctx.response.status = error.status || 500;
       ctx.response.body = {error: error.message || "Internal Server Error"};
