@@ -1,4 +1,4 @@
-const {signToken, getVendorIdFromToken} = require("../../jwt_helper");
+const {signToken, getVendorIdFromToken, signVerifyToken, getVerifyVendorIdFromToken} = require("../../jwt_helper");
 const cookie = require("cookie");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
@@ -85,7 +85,7 @@ function setToken(ctx, key, value) {
     httpOnly: true,
     secure: false,
     sameSite: "strict",
-    maxAge: key === 'accessToken' ? 60 * 60 * 24 * 1000 : 60 * 60 * 24 * 1000 * 365, // 1 year in seconds
+    maxAge: key === 'refreshToken' ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000 , 
     path: "/",
   });
 }
@@ -190,17 +190,10 @@ module.exports = {
         },
       });
 
-      const accessToken = await signToken('accessToken', entry.id);
-      const refreshToken = await signToken('refreshToken', entry.id);
+      const verifyToken = await signVerifyToken(entry.id)
+      setToken(ctx, 'verifyToken', verifyToken);
+      console.log(cookie.parse(ctx.request.header.cookie))
 
-      setToken(ctx, 'accessToken', accessToken);
-      setToken(ctx, 'refreshToken', refreshToken);
-
-      await strapi.entityService.update("api::vendor.vendor", entry.id, {
-        data: {
-          refresh_token: refreshToken,
-        },
-      });
       ctx.send({message: "Vendor created"});
     } catch
       (error) {
@@ -217,8 +210,11 @@ module.exports = {
   },
   setPassword: async (ctx) => {
     try {
-      const {password, verifyToken} = ctx.request.body;
-      var id = -1;
+      const {password} = ctx.request.body;
+      let id;
+      const parsedCookies = cookie.parse(ctx.request.header.cookie);
+      const verifyToken = parsedCookies.verifyToken;
+
       if (!password || password.length <= 0) {
         throw new Error("Password cannot be empty!");
       }
@@ -226,12 +222,31 @@ module.exports = {
       if (!verifyToken) {
         throw new Error('Token not found!');
       }
+      
+      id = await getVerifyVendorIdFromToken(verifyToken);
+      if(!id){
+        throw new Error('No such user!');
+      }
 
-      id = await getVendorIdFromToken('accessToken', verifyToken);
+      const accessToken = await signToken('accessToken', id);
+      const refreshToken = await signToken('refreshToken', id);
+
+      setToken(ctx, 'accessToken', accessToken);
+      setToken(ctx, 'refreshToken', refreshToken);
+
+      ctx.cookies.set('verifyToken', null, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 0,
+        expires: new Date(0),
+        path: "/",
+      });
 
       await strapi.entityService.update("api::vendor.vendor", id, {
         data: {
           password: password,
+          refresh_token: refreshToken
         },
       });
       ctx.send({message: "Successful"});
