@@ -1,4 +1,4 @@
-const {signToken, getVendorIdFromToken, signVerifyToken, getVerifyVendorIdFromToken} = require("../../jwt_helper");
+const {signToken, getVendorIdFromToken} = require("../../jwt_helper");
 const cookie = require("cookie");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
@@ -190,9 +190,8 @@ module.exports = {
         },
       });
 
-      const verifyToken = await signVerifyToken(entry.id)
+      const verifyToken = await signToken('verifyToken', entry.id)
       setToken(ctx, 'verifyToken', verifyToken);
-      console.log(cookie.parse(ctx.request.header.cookie))
 
       ctx.send({message: "Vendor created"});
     } catch
@@ -223,7 +222,7 @@ module.exports = {
         throw new Error('Token not found!');
       }
       
-      id = await getVerifyVendorIdFromToken(verifyToken);
+      id = await getVendorIdFromToken('verifyToken', verifyToken);
       if(!id){
         throw new Error('No such user!');
       }
