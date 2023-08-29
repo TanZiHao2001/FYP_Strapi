@@ -15,7 +15,7 @@ module.exports = {
       };
       const secret = secrets[type]
       const option = {
-        expiresIn: type === 'accessToken' ? "1d" : "1y"
+        expiresIn: type === 'refreshToken' ? "1y" : "1d"
       }
       JWT.sign(payload, secret, option, (err, token) => {
         if (err) {

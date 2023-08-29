@@ -60,5 +60,21 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/sendEmail',
+      handler: AuthController.sendEmail,
+      config: {
+        auth: false,
+      }
+    },
+    {
+      method: 'POST',
+      path: '/custom/checkToken',
+      handler: AuthController.checkToken,
+      config: {
+        auth: false,
+      }
+    },
   ]
 }
