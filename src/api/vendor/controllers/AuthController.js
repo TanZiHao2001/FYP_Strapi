@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
     pass: "kjhigtncoovkicff", //update in .env
   },
 });
-
+//0 8 * * 1-5
 cron.schedule("0 8 * * 1-5", async () => {
   const result = await strapi.db.query("api::vendor.vendor").findMany({
     where: {
@@ -321,10 +321,6 @@ module.exports = {
         throw new Error("Please enter a valid email!");
       }
 
-      // if(!verifyToken){
-      //   throw new Error("No token!");
-      // }
-
       const result = await strapi.db.query("api::vendor.vendor").findMany({
         where: {
           email: {
@@ -332,31 +328,85 @@ module.exports = {
           },
         },
       });
-      
-      const verifyToken = await signToken('verifyToken', result[0].id)
 
       if (result.length === 0) {
         throw new Error("No such email!");
       }
 
-      const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
-      return result;
+      const verifyToken = await signToken("verifyToken", result[0].id);
+      const link =
+        result[0].password == null
+          ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
+          : `http://localhost:4200/sign/reset-password?token=${verifyToken}`;
+
+      const message =
+        result[0].password == null
+          ? "<h1>You have been approved! Follow the link to set your password.</h1>"
+          : "<h1>Follow the link to reset your password.</h1>";
+
+      const output = `
+      <html>
+        <head>
+          <style>
+            .button {
+              display: inline-block;
+              padding: 10px 20px;
+              background-color: #3498db;
+              color: #ffffff;
+              border: none;
+              border-radius: 4px;
+              font-size: 16px;
+              cursor: pointer;
+              text-align: center;
+              text-decoration: none;
+            }
+            .button:hover {
+              background-color: #2980b9;
+            }
+          </style>
+        </head>
+        <body>
+          ${message}
+          <a href="${link}" class="button">Click here to set password</a>
+          <h3>This is a test</h3>
+        </body>
+      </html>
+    `;
+
+      // Setup email data
+      const mailOptions = {
+        from: "sendemail350@gmail.com",
+        to: "yoridayaoi@gmail.com",
+        subject: "Test Email",
+        html: output,
+      };
+
+      // Send the email
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+
+      ctx.send({ message: "Email sent" });
     } catch (error) {
       ctx.response.body = { error: error.message };
     }
   },
   checkToken: async (ctx) => {
-    try{
-      const {verifyToken} = ctx.request.body
-      
-      if(!verifyToken){
-        throw new Error("No token!")
+    try {
+      const { verifyToken } = ctx.request.body;
+
+      if (!verifyToken) {
+        throw new Error("No token!");
       }
 
-      const id = await getVendorIdFromToken('verifyToken', verifyToken)
-      console.log(id)
-      if(!id){
-        throw new Error("Invalid Token!")
+      const id = await getVendorIdFromToken("verifyToken", verifyToken);
+      console.log(id);
+      if (!id) {
+        throw new Error("Invalid Token!");
       }
 
       return true;
