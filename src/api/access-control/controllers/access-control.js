@@ -17,9 +17,8 @@ module.exports = createCoreController('api::access-control.access-control', ({st
     try {
       const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
       const accessToken = parsedCookies?.accessToken;
-
+      
       const vendorId = await getVendorIdFromToken('accessToken', accessToken);
-
       if (!vendorId) {
         throw createError.Unauthorized();
       }
