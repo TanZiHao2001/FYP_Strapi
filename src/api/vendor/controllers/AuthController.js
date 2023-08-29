@@ -262,6 +262,7 @@ module.exports = {
     try {
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const refreshToken = parsedCookies.refreshToken;
+      const accessToken = parsedCookies.accessToken;
       if (!refreshToken) throw new Error("Token is missing!");
       //ctx.badRequest('Token is missing', { foo: 'bar' });
 
@@ -274,6 +275,24 @@ module.exports = {
         data: {
           refresh_token: "",
         },
+      });
+
+      ctx.cookies.set("accessToken", null, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 0,
+        expires: new Date(0),
+        path: "/",
+      });
+
+      ctx.cookies.set("refreshToken", null, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 0,
+        expires: new Date(0),
+        path: "/",
       });
 
       ctx.response.status = 204; // No content
