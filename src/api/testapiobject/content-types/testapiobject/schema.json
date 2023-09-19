@@ -1,0 +1,22 @@
+{
+  "kind": "collectionType",
+  "collectionName": "testapiobjects",
+  "info": {
+    "singularName": "testapiobject",
+    "pluralName": "testapiobjects",
+    "displayName": "testapiobject",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "documentation": {
+      "type": "json"
+    },
+    "documentation2": {
+      "type": "richtext"
+    }
+  }
+}
