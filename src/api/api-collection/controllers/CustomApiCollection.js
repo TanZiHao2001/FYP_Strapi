@@ -41,17 +41,13 @@ module.exports = {
                 fields: ["object"],
                 populate: {
                   attr_ids: {
-                    fields: ["attr_name", "attr_type,", "attr_description"],
+                    fields: ["attr_name", "attr_type", "attr_description"],
                     populate: {
                       child_attr_ids: {
-                        fields: ["attr_name", "attr_type,", "attr_description"],
+                        fields: ["attr_name", "attr_type", "attr_description"],
                         populate: {
                           child_attr_ids: {
-                            fields: [
-                              "attr_name",
-                              "attr_type,",
-                              "attr_description",
-                            ],
+                            fields: ["attr_name", "attr_type", "attr_description",],
                           },
                         },
                       },
@@ -92,7 +88,9 @@ module.exports = {
       );
 
       const result = await contentAPI.output(entities, contentType);
-
+      if(result.length === 0){
+        throw new Error("No api documentation!")
+      }
       //   result[0].api_collections[0].api_ids[0].id = result[0].api_collections[0].api_ids[0].api_req_code_ids[0].id;
       //   result[0].api_collections[0].api_ids[0].api_req_code = result[0].api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
 
@@ -106,7 +104,7 @@ module.exports = {
 
       return result;
     } catch (error) {
-      ctx.send(error);
+      ctx.send(error.message);
     }
   },
 };
