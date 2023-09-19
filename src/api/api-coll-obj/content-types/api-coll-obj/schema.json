@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_coll_objs",
+  "info": {
+    "singularName": "api-coll-obj",
+    "pluralName": "api-coll-objs",
+    "displayName": "Api_coll_obj"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "object": {
+      "type": "richtext"
+    },
+    "attr_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api-coll-obj-attr.api-coll-obj-attr",
+      "mappedBy": "object_id"
+    }
+  }
+}

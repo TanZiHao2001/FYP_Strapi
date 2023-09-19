@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "enums",
+  "info": {
+    "singularName": "enum",
+    "pluralName": "enums",
+    "displayName": "Enum",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "enum_name": {
+      "type": "string",
+      "required": true
+    },
+    "enum_description": {
+      "type": "text"
+    },
+    "attr_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-coll-obj-attr.api-coll-obj-attr",
+      "inversedBy": "enum_ids"
+    },
+    "api_param_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-param.api-param",
+      "inversedBy": "enum_ids"
+    }
+  }
+}

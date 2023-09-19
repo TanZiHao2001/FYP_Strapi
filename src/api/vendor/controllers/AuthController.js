@@ -390,7 +390,7 @@ module.exports = {
           <h3>This is a test</h3>
         </body>
       </html>
-    `;
+    `;  
 
       // Setup email data
       const mailOptions = {

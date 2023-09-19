@@ -47,7 +47,7 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::project.project",
-      "mappedBy": "vendor_id"
+      "mappedBy": "vendor"
     },
     "refresh_token": {
       "type": "text"

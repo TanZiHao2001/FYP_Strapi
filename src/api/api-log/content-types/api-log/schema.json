@@ -31,14 +31,14 @@
       "target": "api::project.project",
       "inversedBy": "api_logs"
     },
-    "api_id": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::api.api",
-      "inversedBy": "api_log"
-    },
     "response_time": {
       "type": "integer"
+    },
+    "api_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api.api",
+      "inversedBy": "api_logs"
     }
   }
 }

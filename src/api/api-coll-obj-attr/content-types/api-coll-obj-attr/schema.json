@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_coll_obj_attrs",
+  "info": {
+    "singularName": "api-coll-obj-attr",
+    "pluralName": "api-coll-obj-attrs",
+    "displayName": "Api_coll_obj_attr",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "object_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api-coll-obj.api-coll-obj",
+      "inversedBy": "attr_ids"
+    },
+    "attr_name": {
+      "type": "string",
+      "required": true
+    },
+    "attr_type": {
+      "type": "string",
+      "required": true
+    },
+    "attr_description": {
+      "type": "text"
+    },
+    "child_attr_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api-coll-obj-attr.api-coll-obj-attr"
+    },
+    "enum_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::enum.enum",
+      "mappedBy": "attr_id"
+    }
+  }
+}

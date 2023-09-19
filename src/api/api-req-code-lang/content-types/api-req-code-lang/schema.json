@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_req_code_langs",
+  "info": {
+    "singularName": "api-req-code-lang",
+    "pluralName": "api-req-code-langs",
+    "displayName": "Api_req_code_lang",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "lang_name": {
+      "type": "string",
+      "required": true
+    },
+    "api_req_code": {
+      "type": "richtext"
+    },
+    "api_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api.api",
+      "private": true,
+      "inversedBy": "api_req_code_ids"
+    }
+  }
+}

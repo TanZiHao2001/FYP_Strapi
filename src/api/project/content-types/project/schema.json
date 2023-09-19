@@ -26,12 +26,6 @@
         "Rejected"
       ]
     },
-    "vendor_id": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::vendor.vendor",
-      "inversedBy": "projects"
-    },
     "api_logs": {
       "type": "relation",
       "relation": "oneToMany",
@@ -49,6 +43,12 @@
       "relation": "oneToMany",
       "target": "api::project-api.project-api",
       "mappedBy": "project_id"
+    },
+    "vendor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::vendor.vendor",
+      "inversedBy": "projects"
     }
   }
 }

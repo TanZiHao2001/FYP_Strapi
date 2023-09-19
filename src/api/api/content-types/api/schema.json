@@ -4,7 +4,7 @@
   "info": {
     "singularName": "api",
     "pluralName": "apis",
-    "displayName": "api",
+    "displayName": "Api_documentation",
     "description": ""
   },
   "options": {
@@ -12,15 +12,15 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "title": {
+    "api_name": {
       "type": "string",
       "required": true
     },
-    "description": {
+    "api_description": {
       "type": "text",
       "required": true
     },
-    "method": {
+    "api_method": {
       "type": "enumeration",
       "enum": [
         "GET",
@@ -31,24 +31,39 @@
       "default": "GET",
       "required": true
     },
-    "request_payload": {
-      "type": "text"
-    },
-    "response_parameter": {
-      "type": "text",
-      "required": true
-    },
-    "api_log": {
+    "api_logs": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "api::api-log.api-log",
       "mappedBy": "api_id"
     },
-    "api_category_id": {
+    "api_endpoint": {
+      "type": "string"
+    },
+    "api_return": {
+      "type": "text"
+    },
+    "api_response_json": {
+      "type": "richtext"
+    },
+    "api_collection_id": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::api-category.api-category",
-      "inversedBy": "apis"
+      "target": "api::api-collection.api-collection",
+      "private": true,
+      "inversedBy": "api_ids"
+    },
+    "api_req_code_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api-req-code-lang.api-req-code-lang",
+      "mappedBy": "api_id"
+    },
+    "api_param_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api-param.api-param",
+      "mappedBy": "api_id"
     }
   }
 }

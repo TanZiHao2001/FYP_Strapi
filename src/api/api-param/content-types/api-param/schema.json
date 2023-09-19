@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_params",
+  "info": {
+    "singularName": "api-param",
+    "pluralName": "api-params",
+    "displayName": "Api_param",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "param_name": {
+      "type": "string",
+      "required": true
+    },
+    "param_type": {
+      "type": "string"
+    },
+    "param_description": {
+      "type": "text"
+    },
+    "api_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::api.api",
+      "inversedBy": "api_param_ids"
+    },
+    "parent_param_id": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api-param.api-param"
+    },
+    "enum_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::enum.enum",
+      "mappedBy": "api_param_id"
+    }
+  }
+}

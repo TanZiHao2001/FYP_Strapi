@@ -16,16 +16,10 @@
       "type": "string",
       "required": true
     },
-    "api_collection_id": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::api-collection.api-collection",
-      "inversedBy": "api_categories"
-    },
-    "apis": {
+    "api_collections": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::api.api",
+      "target": "api::api-collection.api-collection",
       "mappedBy": "api_category_id"
     }
   }

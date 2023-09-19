@@ -4,7 +4,8 @@
   "info": {
     "singularName": "api-collection",
     "pluralName": "api-collections",
-    "displayName": "api_collection"
+    "displayName": "api_collection",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -18,25 +19,34 @@
     "description": {
       "type": "text"
     },
-    "category": {
-      "type": "string"
-    },
     "access_controls": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::access-control.access-control",
       "mappedBy": "api_collection_id"
     },
-    "api_categories": {
+    "api_category_id": {
       "type": "relation",
-      "relation": "oneToMany",
+      "relation": "manyToOne",
       "target": "api::api-category.api-category",
-      "mappedBy": "api_collection_id"
+      "private": true,
+      "inversedBy": "api_collections"
     },
     "project_apis": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::project-api.project-api",
+      "mappedBy": "api_collection_id"
+    },
+    "object_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::api-coll-obj.api-coll-obj"
+    },
+    "api_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::api.api",
       "mappedBy": "api_collection_id"
     }
   }
