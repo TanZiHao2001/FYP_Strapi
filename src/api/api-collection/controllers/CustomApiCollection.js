@@ -8,10 +8,7 @@ const {errorHandler} = require("../../error_helper");
 module.exports = {
   apiCollection: async (ctx) => {
     try {
-      if (!ctx.request.header.cookie) {
-        throw createError.Unauthorized();
-      }
-      const parsedCookies = cookie.parse(ctx.request.header.cookie);
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
       const accessToken = parsedCookies.accessToken;
       if (!accessToken) {
         throw createError.Unauthorized();
@@ -113,6 +110,61 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  subscribedApiCollection: async (ctx) => {
+    try {
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies.accessToken;
+      if (!accessToken) {
+        throw createError.Unauthorized();
+      }
+
+      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      ctx.request.query = {
+        filters: {
+          api_collections: {
+            access_controls: {
+              vendor_id: {
+                id: {
+                  $eq: vendorId,
+                },
+              },
+              status: {
+                $eq: "Approved",
+              },
+            },
+          },
+        },
+        fields: ["category_name"],
+        populate: {
+          api_collections: {
+            fields: ["api_collection_name", "description"]
+          },
+        },
+      };
+
+      const contentType = strapi.contentType("api::api-category.api-category");
+
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.query,
+        contentType
+      );
+
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+
+      const result = await contentAPI.output(entities, contentType);
+
+      return result;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  }
 };
 
 function removeEmptyChildAttrIds(obj) {

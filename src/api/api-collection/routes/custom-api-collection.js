@@ -11,6 +11,14 @@ module.exports = {
       config: {
         auth: false,
       }
+    },
+    {
+      method: 'GET',
+      path: '/custom/subscribed-api-collection',
+      handler: CustomApiCollection.subscribedApiCollection,
+      config: {
+        auth: false,
+      }
     }
   ]
 }
