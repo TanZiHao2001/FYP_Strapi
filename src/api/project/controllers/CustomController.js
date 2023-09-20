@@ -38,7 +38,6 @@ module.exports = {
       const entityIDs = entries.map(entity => entity.api_collection_id.id);
       const allIDsExist = apiCollection.every(id => entityIDs.includes(id));
 
-      console.log(allIDsExist)
       if (!allIDsExist) {
         return ctx.send({error: "Not have access on certain API"});
       }
