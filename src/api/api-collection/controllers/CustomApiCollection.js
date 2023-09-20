@@ -128,9 +128,7 @@ module.exports = {
           api_collections: {
             access_controls: {
               vendor_id: {
-                id: {
-                  $eq: vendorId,
-                },
+                id: vendorId,
               },
               status: {
                 $eq: "Approved",
@@ -141,6 +139,18 @@ module.exports = {
         fields: ["category_name"],
         populate: {
           api_collections: {
+            filters: {
+              access_controls: {
+                vendor_id: {
+                  id: {
+                    $eq: vendorId,
+                  },
+                },
+                status: {
+                  $eq: "Approved",
+                },
+              },
+            },
             fields: ["api_collection_name", "description"]
           },
         },
