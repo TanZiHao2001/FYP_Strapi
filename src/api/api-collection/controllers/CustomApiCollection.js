@@ -1,20 +1,23 @@
-const { sanitize } = require("@strapi/utils");
-const { contentAPI } = sanitize;
+const {sanitize} = require("@strapi/utils");
+const {contentAPI} = sanitize;
 const cookie = require("cookie");
-const { getVendorIdFromToken } = require("../../jwt_helper");
+const {getVendorIdFromToken} = require("../../jwt_helper");
 
 module.exports = {
   apiCollection: async (ctx) => {
     try {
+      if (!ctx.request.header.cookie) {
+        return ctx.send({message: "Token not found!"})
+      }
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const accessToken = parsedCookies.accessToken;
       if (!accessToken) {
-        throw new Error("Token not found!");
+        return ctx.send({message: "Token not found!"})
       }
 
       const vendorId = await getVendorIdFromToken("accessToken", accessToken);
       if (!vendorId) {
-        throw new Error("No such user!");
+        return ctx.send({message: "No such user!"})
       }
 
       ctx.request.query = {
@@ -88,8 +91,9 @@ module.exports = {
       );
 
       const result = await contentAPI.output(entities, contentType);
-      if(result.length === 0){
-        throw new Error("No api documentation!")
+      console.log(vendorId)
+      if (result.length === 0) {
+        return ctx.send([])
       }
       //   result[0].api_collections[0].api_ids[0].id = result[0].api_collections[0].api_ids[0].api_req_code_ids[0].id;
       //   result[0].api_collections[0].api_ids[0].api_req_code = result[0].api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
@@ -110,23 +114,23 @@ module.exports = {
 };
 
 function removeEmptyChildAttrIds(obj) {
-    if (Array.isArray(obj)) {
-      // If obj is an array, iterate through its elements
-      for (let i = obj.length - 1; i >= 0; i--) {
-        removeEmptyChildAttrIds(obj[i]);
-        if (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) {
-          // Remove elements with empty child_attr_ids arrays
-          obj.splice(i, 1);
-        }
+  if (Array.isArray(obj)) {
+    // If obj is an array, iterate through its elements
+    for (let i = obj.length - 1; i >= 0; i--) {
+      removeEmptyChildAttrIds(obj[i]);
+      if (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) {
+        // Remove elements with empty child_attr_ids arrays
+        obj.splice(i, 1);
       }
-    } else if (typeof obj === "object") {
-      // If obj is an object, recursively call the function for its properties
-      for (const key in obj) {
-        if (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) {
-          delete obj[key]; // Remove empty child_attr_ids property
-        } else {
-          removeEmptyChildAttrIds(obj[key]);
-        }
+    }
+  } else if (typeof obj === "object") {
+    // If obj is an object, recursively call the function for its properties
+    for (const key in obj) {
+      if (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) {
+        delete obj[key]; // Remove empty child_attr_ids property
+      } else {
+        removeEmptyChildAttrIds(obj[key]);
       }
     }
   }
+}

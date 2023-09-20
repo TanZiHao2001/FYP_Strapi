@@ -135,7 +135,7 @@ module.exports = {
       const isPasswordValid = await bcrypt.compare(password, entry.password);
 
       if (!isPasswordValid) {
-        ctx.send({ error: "Invalid email / password" });
+        return ctx.send({ error: "Invalid email / password" });
       }
 
       const accessToken = await signToken("accessToken", entry.id);
@@ -390,7 +390,7 @@ module.exports = {
           <h3>This is a test</h3>
         </body>
       </html>
-    `;  
+    `;
 
       // Setup email data
       const mailOptions = {
