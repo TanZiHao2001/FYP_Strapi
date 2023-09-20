@@ -10,5 +10,13 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/changePassword',
+      handler: CustomController.changePassword,
+      config: {
+        auth: false,
+      }
+    },
   ]
 }
