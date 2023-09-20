@@ -19,15 +19,6 @@ module.exports = {
       config: {
         auth: false,
       }
-    },
-    {
-      method: 'GET',
-      path: '/custom/get-param-enum',
-      handler: CustomApiCollection.getParamEnum,
-      config: {
-        auth: false,
-      }
     }
-
   ]
 }
