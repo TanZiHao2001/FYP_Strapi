@@ -90,7 +90,6 @@ module.exports = {
           },
         },
       };
-
       const contentType = strapi.contentType("api::api-category.api-category");
 
       const sanitizedQueryParams = await contentAPI.query(
@@ -104,7 +103,6 @@ module.exports = {
       );
 
       const result = await contentAPI.output(entities, contentType);
-      console.log(vendorId);
       if (result.length === 0) {
         return ctx.send([]);
       }
@@ -115,8 +113,15 @@ module.exports = {
         item.api_collections[0].api_ids[0].api_req_code =
           item.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
         delete item.api_collections[0].api_ids[0].api_req_code_ids;
-        var temp = item.api_collections[0].object_id.attr_ids;
-        removeEmptyChildAttrIds(temp);
+        // var temp = item.api_collections[0].object_id.attr_ids;
+        // var temp = item;
+        // removeEmptyChildArrays(item);
+        // populateEnumIdsForEmptyArrays(item)
+        removeEmptyChildArrays(item)
+        // var childAttr = item.api_collections[0].object_id.attr_ids;
+        // removeEmptyChildArrays(childAttr);
+        // var childParam = item.api_collections[0].api_ids.api_param_ids;
+        // removeEmptyChildArrays(childParam);
       });
 
       return result;
@@ -250,16 +255,17 @@ module.exports = {
   },
 };
 
-function removeEmptyChildAttrIds(obj) {
+
+function removeEmptyChildArrays(obj) {
   if (Array.isArray(obj)) {
     // If obj is an array, iterate through its elements
     for (let i = obj.length - 1; i >= 0; i--) {
-      removeEmptyChildAttrIds(obj[i]);
+      removeEmptyChildArrays(obj[i]);
       if (
-        Array.isArray(obj[i].child_attr_ids) &&
-        obj[i].child_attr_ids.length === 0
+        (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) ||
+        (Array.isArray(obj[i].parent_param_id) && obj[i].parent_param_id.length === 0)
       ) {
-        // Remove elements with empty child_attr_ids arrays
+        // Remove elements with empty child_attr_ids or parent_param_id arrays
         obj.splice(i, 1);
       }
     }
@@ -267,13 +273,12 @@ function removeEmptyChildAttrIds(obj) {
     // If obj is an object, recursively call the function for its properties
     for (const key in obj) {
       if (
-        key === "child_attr_ids" &&
-        Array.isArray(obj[key]) &&
-        obj[key].length === 0
+        (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) ||
+        (key === "parent_param_id" && Array.isArray(obj[key]) && obj[key].length === 0)
       ) {
-        delete obj[key]; // Remove empty child_attr_ids property
+        delete obj[key]; // Remove empty child_attr_ids or parent_param_id property
       } else {
-        removeEmptyChildAttrIds(obj[key]);
+        removeEmptyChildArrays(obj[key]);
       }
     }
   }
@@ -298,6 +303,9 @@ function generatePopulate(depth, foreignKey, fields) {
   }
 
   const populateObject = {};
+  // if(populateObject[foreignKey].foreignKey.length === 0){
+  //   populate: generatePopulate(depth - 1, "enum_ids", ["enum_name", "enum_description"])
+  // }
   populateObject[foreignKey] = {
     fields,
     populate: generatePopulate(depth - 1, foreignKey, fields)
@@ -305,3 +313,75 @@ function generatePopulate(depth, foreignKey, fields) {
 
   return populateObject;
 }
+
+// async function populateEnumIdsForEmptyArrays(obj) {
+//   if (Array.isArray(obj)) {
+//     // If obj is an array, iterate through its elements
+//     for (let i = obj.length - 1; i >= 0; i--) {
+//       populateEnumIdsForEmptyArrays(obj[i]);
+//       if (
+//         (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) ||
+//         (Array.isArray(obj[i].parent_param_id) && obj[i].parent_param_id.length === 0)
+//       ) {
+//         console.log(obj[i])
+//         var enum_query = {
+//           fields:[], 
+//           populate: {
+//             enum_ids: {
+//               fields:["enum_name", "enum_description"]
+//             }
+//           }
+//         }
+        
+//         const contentType = strapi.contentType("api::api-coll-obj-attr.api-coll-obj-attr");
+
+//         const sanitizedQueryParams = await contentAPI.query(
+//           enum_query,
+//           contentType
+//         );
+
+//         const entities = await strapi.entityService.findMany(
+//           contentType.uid,
+//           sanitizedQueryParams
+//         );
+
+//         const result = await contentAPI.output(entities, contentType);
+//         console.log(result)
+//         // obj[i].enum_ids = result;
+//         // console.log(obj[i])
+        
+//       }
+//     }
+//   } else if (typeof obj === "object") {
+//     // If obj is an object, recursively call the function for its properties
+//     for (const key in obj) {
+//       if (
+//         (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) ||
+//         (key === "parent_param_id" && Array.isArray(obj[key]) && obj[key].length === 0)
+//       ) {
+//         // Populate "enum_ids" for objects with empty child_attr_ids or parent_param_id arrays
+//         // console.log(key)
+//         // console.log(obj[key])
+//         var enum_query = {fields:["enum_name", "enum_description"]}
+        
+//         const contentType = strapi.contentType("api::enum.enum");
+
+//         const sanitizedQueryParams = await contentAPI.query(
+//           enum_query,
+//           contentType
+//         );
+
+//         const entities = await strapi.entityService.findMany(
+//           contentType.uid,
+//           sanitizedQueryParams
+//         );
+
+//         const result = await contentAPI.output(entities, contentType);
+        
+//         // console.log(result)
+//       } else {
+//         populateEnumIdsForEmptyArrays(obj[key]);
+//       }
+//     }
+//   }
+// }
