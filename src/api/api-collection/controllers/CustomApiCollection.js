@@ -2,22 +2,24 @@ const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
 const {getVendorIdFromToken} = require("../../jwt_helper");
+const createError = require("http-errors");
+const {errorHandler} = require("../../error_helper");
 
 module.exports = {
   apiCollection: async (ctx) => {
     try {
       if (!ctx.request.header.cookie) {
-        return ctx.send({message: "Token not found!"})
+        throw createError.Unauthorized();
       }
       const parsedCookies = cookie.parse(ctx.request.header.cookie);
       const accessToken = parsedCookies.accessToken;
       if (!accessToken) {
-        return ctx.send({message: "Token not found!"})
+        throw createError.Unauthorized();
       }
 
       const vendorId = await getVendorIdFromToken("accessToken", accessToken);
       if (!vendorId) {
-        return ctx.send({message: "No such user!"})
+        throw createError.Unauthorized();
       }
 
       ctx.request.query = {
@@ -108,7 +110,7 @@ module.exports = {
 
       return result;
     } catch (error) {
-      ctx.send(error.message);
+      await errorHandler(ctx, error);
     }
   },
 };

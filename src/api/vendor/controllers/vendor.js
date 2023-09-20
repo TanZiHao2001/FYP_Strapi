@@ -7,57 +7,30 @@
 const {sanitize} = require('@strapi/utils')
 const {contentAPI} = sanitize;
 const {createCoreController} = require('@strapi/strapi').factories;
-
-// module.exports = createCoreController('api::vendor.vendor', ({strapi}) => ({
-//     async vendorLogin(ctx) {
-//         try {
-//             ctx.body = 'okadsafd';
-//         } catch (err) {
-//             ctx.body = err;
-//         }
-//     }
-// }));
-
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const {getVendorIdFromToken} = require("../../jwt_helper");
+const createError = require("http-errors");
+const cookie = require("cookie");
+const {errorHandler} = require("../../error_helper");
 
 module.exports = createCoreController('api::vendor.vendor', ({strapi}) => ({
-  async vendorLogin(ctx) {
+  async find(ctx) {
     try {
-      const {email, password} = ctx.request.body;
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
 
-      ctx.request.query.filters = {
-        email: {
-          $eq: email
-        }
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      if (!vendorId) {
+        throw createError.Unauthorized();
       }
 
       const contentType = strapi.contentType('api::vendor.vendor')
-      const sanitizedQueryParams = await contentAPI.query(ctx.query, contentType)
-      const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
-      if (entities.length === 0) {
-        return {error: 'Email not found!'};
-      }
-      const isPasswordValid = await bcrypt.compare(password, entities[0].password);
-      if (!isPasswordValid) {
-        return {error: 'Invalid password !'};
-      }
-      const token = jwt.sign({id: entities[0].id, date: new Date()}, 'your-secret-key', {
-        expiresIn: '1d',
+      const entry = await strapi.entityService.findOne('api::vendor.vendor', vendorId, {
+        fields: ['username', 'organisation', 'email']
       });
-      // console.log(token);
-      // console.log(parseJwt(token));
-      // console.log(jwt.decode(token));
-      // ctx.send({ token, entities });
-      // console.log(entities[0].password);
-      // return entities;
-      const result = {
-        token: token
-      }
+      const result = await contentAPI.output(entry, contentType);
       return result;
-    } catch (err) {
-      ctx.send({error: err.message}, 400);
+    } catch (error) {
+      await errorHandler(ctx, error);
     }
   }
-
 }));
