@@ -106,8 +106,7 @@ module.exports = {
       }
 
       result.forEach((item) => {
-        item.api_collections[0].api_ids[0].api_req_code =
-          item.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
+        item.api_collections[0].api_ids[0].api_req_code = item.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
         delete item.api_collections[0].api_ids[0].api_req_code_ids;
         removeEmptyChildArrays(item)
       });
