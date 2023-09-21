@@ -123,7 +123,6 @@ module.exports = {
         // var childParam = item.api_collections[0].api_ids.api_param_ids;
         // removeEmptyChildArrays(childParam);
       });
-
       return result;
     } catch (error) {
       await errorHandler(ctx, error);
@@ -263,7 +262,8 @@ function removeEmptyChildArrays(obj) {
       removeEmptyChildArrays(obj[i]);
       if (
         (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) ||
-        (Array.isArray(obj[i].parent_param_id) && obj[i].parent_param_id.length === 0)
+        (Array.isArray(obj[i].parent_param_id) && obj[i].parent_param_id.length === 0) ||
+        (Array.isArray(obj[i].enum_ids) && obj[i].enum_ids.length === 0)
       ) {
         // Remove elements with empty child_attr_ids or parent_param_id arrays
         obj.splice(i, 1);
@@ -274,7 +274,8 @@ function removeEmptyChildArrays(obj) {
     for (const key in obj) {
       if (
         (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) ||
-        (key === "parent_param_id" && Array.isArray(obj[key]) && obj[key].length === 0)
+        (key === "parent_param_id" && Array.isArray(obj[key]) && obj[key].length === 0) ||
+        (key === "enum_ids" && Array.isArray(obj[key]) && obj[key].length === 0)
       ) {
         delete obj[key]; // Remove empty child_attr_ids or parent_param_id property
       } else {
@@ -308,8 +309,15 @@ function generatePopulate(depth, foreignKey, fields) {
   // }
   populateObject[foreignKey] = {
     fields,
-    populate: generatePopulate(depth - 1, foreignKey, fields)
+    populate: {
+      enum_ids: {
+        fields: ["enum_name", "enum_description"],
+        populate: generatePopulate(depth - 1, foreignKey, fields)
+      }
+    }
+    // populate: generatePopulate(depth - 1, foreignKey, fields)
   };
+  console.log(populateObject)
 
   return populateObject;
 }
