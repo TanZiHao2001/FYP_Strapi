@@ -26,6 +26,7 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::api.api",
+      "private": true,
       "inversedBy": "api_param_ids"
     },
     "parent_param_id": {
