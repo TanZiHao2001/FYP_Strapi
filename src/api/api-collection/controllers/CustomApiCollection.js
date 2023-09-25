@@ -21,8 +21,8 @@ module.exports = {
       const maxDepth = 4; 
       const childAttr = "child_attr_ids"
       const childAttrfields = ["attr_name", "attr_type", "attr_description"];
-      const childParam = "parent_param_id";
-      const childParamFields = ["param_name", "param_type", "param_description"];
+      const childParam = "child_param_id";
+      const childParamFields = ["child_name", "child_type", "child_description"];
       
       ctx.request.query = {
         filters: {
@@ -79,7 +79,7 @@ module.exports = {
                     fields: ["api_req_code"],
                   },
                   api_param_ids: {
-                    fields: ["param_name", "param_type", "param_description"],
+                    fields: ["attr_name", "attr_type", "attr_description"],
                     populate: generatePopulate(maxDepth, childParam, childParamFields),
                   },
                 },
@@ -249,7 +249,7 @@ function removeEmptyChildArrays(obj) {
       removeEmptyChildArrays(obj[i]);
       if (
         (Array.isArray(obj[i].child_attr_ids) && obj[i].child_attr_ids.length === 0) ||
-        (Array.isArray(obj[i].parent_param_id) && obj[i].parent_param_id.length === 0) ||
+        (Array.isArray(obj[i].child_param_id) && obj[i].child_param_id.length === 0) ||
         (Array.isArray(obj[i].enum_ids) && obj[i].enum_ids.length === 0)
       ) {
         // Remove elements with empty child_attr_ids or parent_param_id arrays
@@ -261,7 +261,7 @@ function removeEmptyChildArrays(obj) {
     for (const key in obj) {
       if (
         (key === "child_attr_ids" && Array.isArray(obj[key]) && obj[key].length === 0) ||
-        (key === "parent_param_id" && Array.isArray(obj[key]) && obj[key].length === 0) ||
+        (key === "child_param_id" && Array.isArray(obj[key]) && obj[key].length === 0) ||
         (key === "enum_ids" && Array.isArray(obj[key]) && obj[key].length === 0)
       ) {
         delete obj[key]; // Remove empty child_attr_ids or parent_param_id property

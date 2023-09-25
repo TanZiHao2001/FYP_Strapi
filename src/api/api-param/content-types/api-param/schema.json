@@ -12,14 +12,14 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "param_name": {
+    "attr_name": {
       "type": "string",
       "required": true
     },
-    "param_type": {
+    "attr_type": {
       "type": "string"
     },
-    "param_description": {
+    "attr_description": {
       "type": "text"
     },
     "api_id": {
@@ -29,7 +29,7 @@
       "private": true,
       "inversedBy": "api_param_ids"
     },
-    "parent_param_id": {
+    "child_param_id": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::api-param.api-param"
