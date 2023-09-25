@@ -46,7 +46,7 @@ module.exports = createCoreController(
             delete item.createdAt
           });
         } else {
-          throw new Error("No announcement");
+          result[0] = {"announcement_text": null};
         }
 
         return result[0];
