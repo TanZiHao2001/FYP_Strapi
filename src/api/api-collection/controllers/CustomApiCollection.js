@@ -18,6 +18,8 @@ module.exports = {
       if (!vendorId) {
         throw createError.Unauthorized();
       }
+
+      const lang_name = ctx.params.lang;
       const maxDepth = 4; 
       const childAttr = "child_attr_ids"
       const childAttrfields = ["attr_name", "attr_type", "attr_description"];
@@ -76,7 +78,10 @@ module.exports = {
                 ],
                 populate: {
                   api_req_code_ids: {
-                    fields: ["api_req_code"],
+                    filters: {
+                      lang_name: lang_name,
+                    },
+                    fields: ["lang_name", "api_req_code"],
                   },
                   api_param_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
@@ -105,10 +110,18 @@ module.exports = {
         return ctx.send([]);
       }
 
-      result.forEach((item) => {
-        item.api_collections[0].api_ids[0].api_req_code = item.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
-        delete item.api_collections[0].api_ids[0].api_req_code_ids;
-        removeEmptyChildArrays(item)
+      result.forEach((items) => {
+        items.api_collections.forEach((api_collection) => {
+          api_collection.api_ids.forEach((api_id) => {
+              api_id.api_req_code_ids.forEach((api_req_code_id) => {
+                api_id.lang_name = api_req_code_id.lang_name;
+                api_id.api_req_code = api_req_code_id.api_req_code;
+              })
+          })
+        })
+        // items.api_collections[0].api_ids[0].api_req_code = items.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
+        // delete items.api_collections[0].api_ids[0].api_req_code_ids;
+        removeEmptyChildArrays(items)
       });
       return result;
     } catch (error) {
@@ -288,7 +301,6 @@ function generatePopulate(depth, foreignKey, fields) {
       }
     }
   };
-  console.log(populateObject)
 
   return populateObject;
 }

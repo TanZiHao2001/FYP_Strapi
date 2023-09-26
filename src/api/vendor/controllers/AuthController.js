@@ -260,13 +260,10 @@ module.exports = {
   },
   logout: async (ctx) => {
     try {
-      var refreshToken, accessToken;
 
-      if(ctx.request.header.cookie){
-        const parsedCookies = cookie.parse(ctx.request.header.cookie);
-        refreshToken = parsedCookies.refreshToken;
-        accessToken = parsedCookies.accessToken;
-      }
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const refreshToken = parsedCookies?.refreshToken;
+      const accessToken = parsedCookies?.accessToken;
     
       if (!refreshToken && !accessToken) {
         ctx.response.status = 204;

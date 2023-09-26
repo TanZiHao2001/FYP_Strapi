@@ -6,7 +6,7 @@ module.exports = {
   routes: [
     {
       method: 'GET',
-      path: '/custom/api-collections',
+      path: '/custom/api-collections/:lang',
       handler: CustomApiCollection.apiCollection,
       config: {
         auth: false,

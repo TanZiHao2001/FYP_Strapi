@@ -5,6 +5,8 @@ const {errorHandler} = require("../../error_helper");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const bcrypt = require("bcryptjs");
+const project = require("./project");
+const vendor = require("../../vendor/controllers/vendor");
 
 module.exports = {
   async createProject(ctx) {
@@ -68,5 +70,66 @@ module.exports = {
     } catch (error) {
       await errorHandler(ctx, error);
     }
-  }
+  },
+  async getProjectAPICollection(ctx){
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if(db_vendorId.length === 0){
+        throw createError.Forbidden();
+      }
+
+      const result = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+        },
+        fields: ["id"],
+        populate: {
+          project_apis: {
+            populate: {
+              api_collection_id: {
+                fields: ["api_collection_name", "description"]
+              }
+            }
+          }
+        }
+      });
+      return result;
+      // const entries = await strapi.entityService.findMany('api::project.project', {
+      //   filters: {
+      //     status: 'Approved',
+      //     vendor_id: {
+      //       id: vendorId
+      //     },
+      //     api_collection_id: {
+      //       id: apiCollection
+      //     }
+      //   },
+      //   populate: {
+      //     api_collection_id: {
+      //       fields: ["api_collection_name"]
+      //     }
+      //   }
+      // });
+    }catch(error){
+      await errorHandler(ctx, error);
+    }
+  },
 };

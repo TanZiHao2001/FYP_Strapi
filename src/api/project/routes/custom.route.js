@@ -10,5 +10,13 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'GET',
+      path: '/custom/get-project-api-collection/:id',
+      handler: CustomController.getProjectAPICollection,
+      config: {
+        auth: false,
+      }
+    }
   ]
 }
