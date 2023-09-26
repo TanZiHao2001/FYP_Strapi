@@ -260,9 +260,14 @@ module.exports = {
   },
   logout: async (ctx) => {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie);
-      const refreshToken = parsedCookies.refreshToken;
-      const accessToken = parsedCookies.accessToken;
+      var refreshToken, accessToken;
+
+      if(ctx.request.header.cookie){
+        const parsedCookies = cookie.parse(ctx.request.header.cookie);
+        refreshToken = parsedCookies.refreshToken;
+        accessToken = parsedCookies.accessToken;
+      }
+    
       if (!refreshToken) throw new Error("Token is missing!");
       //ctx.badRequest('Token is missing', { foo: 'bar' });
 
