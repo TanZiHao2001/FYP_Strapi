@@ -4,7 +4,8 @@
   "info": {
     "singularName": "project",
     "pluralName": "projects",
-    "displayName": "project"
+    "displayName": "project",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -42,6 +43,7 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::project-api.project-api",
+      "private": true,
       "mappedBy": "project_id"
     },
     "vendor": {

@@ -36,6 +36,7 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::project-api.project-api",
+      "private": true,
       "mappedBy": "api_collection_id"
     },
     "object_id": {

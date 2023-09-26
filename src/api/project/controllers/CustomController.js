@@ -103,6 +103,7 @@ module.exports = {
         fields: ["id"],
         populate: {
           project_apis: {
+            fields:["id"],
             populate: {
               api_collection_id: {
                 fields: ["api_collection_name", "description"]
@@ -110,6 +111,15 @@ module.exports = {
             }
           }
         }
+      });
+
+      result.forEach((item) => {
+        item.project_apis.forEach((project_api) => {
+          project_api.api_collection_name = project_api.api_collection_id.api_collection_name;
+          project_api.description = project_api.api_collection_id.description;
+          delete project_api.api_collection_id;
+          delete project_api.project_id;
+        })
       });
       return result;
       // const entries = await strapi.entityService.findMany('api::project.project', {
