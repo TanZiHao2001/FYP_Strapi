@@ -268,7 +268,11 @@ module.exports = {
         accessToken = parsedCookies.accessToken;
       }
     
-      if (!refreshToken) throw new Error("Token is missing!");
+      if (!refreshToken && !accessToken) {
+        ctx.response.status = 204;
+        ctx.send({ message: "logout successful" })
+        return
+      }
       //ctx.badRequest('Token is missing', { foo: 'bar' });
 
       const vendorId = await getVendorIdFromToken("refreshToken", refreshToken);
