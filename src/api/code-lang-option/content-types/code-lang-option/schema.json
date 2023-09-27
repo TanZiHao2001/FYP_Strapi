@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "code_lang_options",
+  "info": {
+    "singularName": "code-lang-option",
+    "pluralName": "code-lang-options",
+    "displayName": "code_lang_option",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Label": {
+      "type": "string"
+    },
+    "LanguageCode": {
+      "type": "string"
+    },
+    "iconUrl": {
+      "type": "text"
+    },
+    "icon": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    }
+  }
+}
