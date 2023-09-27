@@ -206,5 +206,46 @@ module.exports = {
     } catch (error){
       await errorHandler(ctx, error)
     }
+  },
+  async updateProject(ctx){
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const {projectName, projectDescription} = ctx.request.body
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (db_vendorId.length === 0) {
+        throw createError.Forbidden();
+      }
+
+      if(!projectName || !projectDescription){
+        throw createError.UnprocessableEntity("Please ensure all fields are filled!");
+      }
+
+      const update_project = await strapi.entityService.update('api::project.project', projectId, {
+        data:{
+          project_name: projectName,
+          description: projectDescription
+        }
+      })
+
+      return update_project;
+    } catch (error){
+      await errorHandler(ctx, error)
+    }
   }
 };

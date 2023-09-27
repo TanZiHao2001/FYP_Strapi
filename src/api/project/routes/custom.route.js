@@ -33,6 +33,14 @@ module.exports = {
       config: {
         auth: false,
       }
+    },
+    {
+      method: 'POST',
+      path: '/custom/update-project/:id',
+      handler: CustomController.updateProject,
+      config: {
+        auth: false,
+      }
     }
   ]
 }
