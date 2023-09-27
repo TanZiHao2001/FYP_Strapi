@@ -136,7 +136,7 @@ module.exports = {
         throw createError.Unauthorized();
       }
 
-      const projectId = ctx.params.projectId;
+      const projectId = ctx.params.id;
 
       const db_vendorId = await strapi.entityService.findMany('api::project.project', {
         filters: {
@@ -172,6 +172,38 @@ module.exports = {
       const delete_project = await strapi.entityService.delete('api::project.project', projectId)
       ctx.send({ message: "delete successful" });
     } catch(error){
+      await errorHandler(ctx, error)
+    }
+  },
+  async getProjectDetails(ctx){
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (db_vendorId.length === 0) {
+        throw createError.Forbidden();
+      }
+
+      const project_detail = await strapi.entityService.findOne('api::project.project', projectId, {
+        fields: ["project_name", "description"]
+      })
+      return project_detail;
+    } catch (error){
       await errorHandler(ctx, error)
     }
   }

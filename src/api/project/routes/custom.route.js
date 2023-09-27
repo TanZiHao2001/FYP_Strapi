@@ -20,8 +20,16 @@ module.exports = {
     },
     {
       method: 'DELETE',
-      path: '/custom/delete-project/:projectId',
+      path: '/custom/delete-project/:id',
       handler: CustomController.deleteProject,
+      config: {
+        auth: false,
+      }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-project-details/:id',
+      handler: CustomController.getProjectDetails,
       config: {
         auth: false,
       }
