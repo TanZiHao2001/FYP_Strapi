@@ -131,7 +131,26 @@ module.exports = {
     try{
       const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
       const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
       const projectId = ctx.params.projectId;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (db_vendorId.length === 0) {
+        throw createError.Forbidden();
+      }
+
       const tokenId = await strapi.entityService.findMany('api::token.token', {
         filters: {
           project_id: {
