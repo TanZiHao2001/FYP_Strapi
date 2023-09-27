@@ -135,7 +135,7 @@ module.exports = {
       if (!vendorId) {
         throw createError.Unauthorized();
       }
-
+      
       const projectId = ctx.params.id;
 
       const db_vendorId = await strapi.entityService.findMany('api::project.project', {
@@ -253,6 +253,53 @@ module.exports = {
 
       return update_project;
     } catch (error){
+      await errorHandler(ctx, error)
+    }
+  },
+  async getAllProjectTokens(ctx){
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (db_vendorId.length === 0) {
+        throw createError.Forbidden();
+      }
+
+      const token_history = await strapi.entityService.findOne('api::project.project', projectId, {
+        fields:["id"],
+        populate:{
+          tokens:{
+            fields:["token", "created_date", "expiration_date"],
+          }
+        }
+      })
+
+      if (token_history.tokens.length > 1) {
+        token_history.tokens.sort(
+          (a, b) => new Date(b.created_date) - new Date(a.created_date)
+        );
+      }
+      token_history.tokens.forEach((item) => {
+        delete item.project_id;
+      })
+      
+      return token_history;
+    } catch(error){
       await errorHandler(ctx, error)
     }
   }

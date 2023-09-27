@@ -41,6 +41,14 @@ module.exports = {
       config: {
         auth: false,
       }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-all-project-tokens/:id',
+      handler: CustomController.getAllProjectTokens,
+      config: {
+        auth: false,
+      }
     }
   ]
 }

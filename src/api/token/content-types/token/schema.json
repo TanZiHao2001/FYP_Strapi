@@ -25,6 +25,7 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::project.project",
+      "private": true,
       "inversedBy": "tokens"
     },
     "token": {
