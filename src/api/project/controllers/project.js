@@ -21,18 +21,32 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
       if(!vendorId) {
         throw new Error ('Unauthorised!');
       }
+      // ctx.request.query = {
+      //   filters: {
+      //     vendor_id: {
+      //       id: {
+      //         $eq: vendorId,
+      //       },
+      //     },
+      //   },
+      //   fields: ["id", "project_name", "description", "createdAt"],
+      //   populate: {
+      //     tokens: {
+      //       populate: ["tokens"],
+      //     },
+      //   },
+      // };
+
       ctx.request.query = {
         filters: {
-          vendor_id: {
-            id: {
-              $eq: vendorId,
-            },
+          vendor: {
+            id: vendorId,
           },
         },
         fields: ["id", "project_name", "description", "createdAt"],
         populate: {
           tokens: {
-            populate: ["tokens"],
+            fields: ["created_date", "token"],
           },
         },
       };
@@ -47,12 +61,22 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         sanitizedQueryParams
       );
       const result = await contentAPI.output(entities, contentType);
+      
       if(result.length > 0){
-        result[0].tokens.sort(
-          (a, b) => new Date(b.created_date) - new Date(a.created_date)
-        );
-        result[0].token = result[0].tokens[0].token;
-        delete result[0].tokens;
+        result.forEach((item) => {
+          if (item.tokens.length > 1) {
+            item.tokens.sort(
+              (a, b) => new Date(b.created_date) - new Date(a.created_date)
+            );
+          }
+          item.token = item.tokens[0].token;
+          delete item.tokens;
+        })
+        // result[0].tokens.sort(
+        //   (a, b) => new Date(b.created_date) - new Date(a.created_date)
+        // );
+        // result[0].token = result[0].tokens[0].token;
+        // delete result[0].tokens;
       }
       // if no projects are returned
       else{
