@@ -9,6 +9,8 @@ const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
 const {getVendorIdFromToken} = require("../../jwt_helper");
+const createError = require("http-errors");
+const {errorHandler} = require("../../error_helper");
 
 module.exports = createCoreController("api::project.project", ({strapi}) => ({
   async find(ctx) {
@@ -21,21 +23,6 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
       if(!vendorId) {
         throw new Error ('Unauthorised!');
       }
-      // ctx.request.query = {
-      //   filters: {
-      //     vendor_id: {
-      //       id: {
-      //         $eq: vendorId,
-      //       },
-      //     },
-      //   },
-      //   fields: ["id", "project_name", "description", "createdAt"],
-      //   populate: {
-      //     tokens: {
-      //       populate: ["tokens"],
-      //     },
-      //   },
-      // };
 
       ctx.request.query = {
         filters: {
@@ -72,29 +59,44 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
           item.token = item.tokens[0].token;
           delete item.tokens;
         })
-        // result[0].tokens.sort(
-        //   (a, b) => new Date(b.created_date) - new Date(a.created_date)
-        // );
-        // result[0].token = result[0].tokens[0].token;
-        // delete result[0].tokens;
       }
-      // if no projects are returned
       else{
-        throw new Error("No projects!");
+        throw createError.NotFound();
       }
       return result;
     } catch (error) {
-      if (error) {
-        // If it's a validation error
-        ctx.response.status = 200; //initially 204
-        ctx.response.body = {error: error.message};
-      } else {
-        // Handle other errors accordingly
-        ctx.response.status = 200; //500
-        ctx.response.body = {error: "Internal Server Error"};
-      }
+      await errorHandler(ctx, error)
     }
   },
+  async findOne(ctx){
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const result = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (result.length === 0) {
+        throw createError.Forbidden();
+      }
+
+      return result;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  }
   
   //TODO: customise findOne method so that vendor cannot get other vendor's project
 }));
