@@ -17,6 +17,14 @@ module.exports = {
       config: {
         auth: false,
       }
+    },
+    {
+      method: 'DELETE',
+      path: '/custom/delete-project/:projectId',
+      handler: CustomController.deleteProject,
+      config: {
+        auth: false,
+      }
     }
   ]
 }

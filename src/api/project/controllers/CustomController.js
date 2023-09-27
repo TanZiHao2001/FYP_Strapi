@@ -56,6 +56,13 @@ module.exports = {
         },
       });
 
+      const token_entry = await strapi.entityService.create('api::token.token', {
+        data: {
+          publishedAt: Date.now(),
+          project_id: project_entry.id
+        }
+      })
+
       for (const apiId of apiCollection) {
         await strapi.entityService.create('api::project-api.project-api', {
           data: {
@@ -120,4 +127,33 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  async deleteProject(ctx) {
+    try{
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const projectId = ctx.params.projectId;
+      const tokenId = await strapi.entityService.findMany('api::token.token', {
+        filters: {
+          project_id: {
+            id: projectId
+          }
+        },
+        fields: ["id"]
+      });
+      const projectApiId = await strapi.entityService.findMany('api::project-api.project-api', {
+        filters: {
+          project_id: {
+            id: projectId
+          }
+        },
+        fields: ["id"]
+      });
+      const delete_token = await strapi.entityService.delete('api::token.token', tokenId[0].id)
+      const delete_projectAPI = await strapi.entityService.delete('api::project-api.project-api', projectApiId[0].id)
+      const delete_project = await strapi.entityService.delete('api::project.project', projectId)
+      ctx.send({ message: "delete successful" });
+    } catch(error){
+      await errorHandler(ctx, error)
+    }
+  }
 };

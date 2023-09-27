@@ -52,7 +52,6 @@ module.exports = createCoreController('api::code-lang-option.code-lang-option', 
       }));
 
       return transformedData;
-      return result;
     } catch (error) {
       await errorHandler(ctx, error);
     }
