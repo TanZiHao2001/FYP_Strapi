@@ -232,14 +232,22 @@ module.exports = {
         throw createError.Forbidden();
       }
 
-      if(!projectName || !projectDescription){
-        throw createError.UnprocessableEntity("Please ensure all fields are filled!");
+      if(!projectName && !projectDescription){
+        throw createError.UnprocessableEntity("Please ensure at least one field is filled!");
+      }
+
+      const projectDetails = await strapi.entityService.findOne('api::project.project', projectId, {
+        fields: ["project_name", "description"]
+      })
+      
+      if( (projectName === projectDetails.project_name) && (projectDescription === projectDetails.description) ){
+        throw createError.UnprocessableEntity("No field is required to update!");
       }
 
       const update_project = await strapi.entityService.update('api::project.project', projectId, {
         data:{
-          project_name: projectName,
-          description: projectDescription
+          project_name: projectName? projectName : projectDetails.project_name,
+          description: projectDescription? projectDescription : projectDetails.description
         }
       })
 
