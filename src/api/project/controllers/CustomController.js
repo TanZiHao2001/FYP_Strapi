@@ -231,7 +231,7 @@ module.exports = {
       const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
       const accessToken = parsedCookies?.accessToken;
       const vendorId = await getVendorIdFromToken('accessToken', accessToken)
-      const {projectName, projectDescription} = ctx.request.body
+      const {project_name, description} = ctx.request.body
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -251,7 +251,7 @@ module.exports = {
         throw createError.Forbidden();
       }
 
-      if(!projectName && !projectDescription){
+      if(!project_name && !description){
         throw createError.UnprocessableEntity("Please ensure at least one field is filled!");
       }
 
@@ -259,18 +259,18 @@ module.exports = {
         fields: ["project_name", "description"]
       })
 
-      if( (projectName === projectDetails.project_name) && (projectDescription === projectDetails.description) ){
+      if( (project_name === projectDetails.project_name) && (description === projectDetails.description) ){
         throw createError.UnprocessableEntity("No field is required to update!");
       }
 
       const update_project = await strapi.entityService.update('api::project.project', projectId, {
         data:{
-          project_name: projectName? projectName : projectDetails.project_name,
-          description: projectDescription? projectDescription : projectDetails.description
+          project_name: project_name ? project_name : projectDetails.project_name,
+          description: description ? description : projectDetails.description
         }
       })
 
-      return update_project;
+      ctx.send({message: "Update successful!"});
     } catch (error){
       await errorHandler(ctx, error)
     }
