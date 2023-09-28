@@ -56,7 +56,7 @@ module.exports = {
         },
       });
 
-      
+
       // const token_entry = await strapi.entityService.create('api::token.token', {
       //   data: {
       //     publishedAt: Date.now(),
@@ -154,7 +154,7 @@ module.exports = {
       if (!vendorId) {
         throw createError.Unauthorized();
       }
-      
+
       const projectId = ctx.params.id;
 
       const db_vendorId = await strapi.entityService.findMany('api::project.project', {
@@ -189,7 +189,7 @@ module.exports = {
       const delete_token = await strapi.entityService.delete('api::token.token', tokenId[0].id)
       const delete_projectAPI = await strapi.entityService.delete('api::project-api.project-api', projectApiId[0].id)
       const delete_project = await strapi.entityService.delete('api::project.project', projectId)
-      ctx.send({ message: "delete successful" });
+      ctx.send({ message: "Delete successful" });
     } catch(error){
       await errorHandler(ctx, error)
     }
@@ -258,7 +258,7 @@ module.exports = {
       const projectDetails = await strapi.entityService.findOne('api::project.project', projectId, {
         fields: ["project_name", "description"]
       })
-      
+
       if( (projectName === projectDetails.project_name) && (projectDescription === projectDetails.description) ){
         throw createError.UnprocessableEntity("No field is required to update!");
       }
@@ -316,8 +316,8 @@ module.exports = {
       token_history.tokens.forEach((item) => {
         delete item.project_id;
       })
-      
-      return token_history;
+
+      return token_history.tokens;
     } catch(error){
       await errorHandler(ctx, error)
     }
