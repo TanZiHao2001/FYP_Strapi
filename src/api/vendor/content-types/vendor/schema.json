@@ -34,7 +34,9 @@
       "enum": [
         "Pending",
         "Approved",
-        "Rejected"
+        "Rejected",
+        "Email Sent",
+        "Activated"
       ]
     },
     "access_controls": {

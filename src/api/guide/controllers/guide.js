@@ -7,6 +7,8 @@
 const { createCoreController } = require("@strapi/strapi").factories;
 const { sanitize } = require("@strapi/utils");
 const { contentAPI } = sanitize;
+const createError = require("http-errors");
+const {errorHandler} = require('../../error_helper');
 
 module.exports = createCoreController("api::guide.guide", ({ strapi }) => ({
   async find(ctx) {
@@ -26,15 +28,7 @@ module.exports = createCoreController("api::guide.guide", ({ strapi }) => ({
       const result = await contentAPI.output(entities, contentType);
       return result;    
     } catch (error) {
-      if (error) {
-        // If it's a validation error
-        ctx.response.status = 200; //initially 204
-        ctx.response.body = { error: error.message };
-      } else {
-        // Handle other errors accordingly
-        ctx.response.status = 200; //500
-        ctx.response.body = { error: "Internal Server Error" };
-      }
+      await errorHandler(ctx, error)
     }
   },
 }));

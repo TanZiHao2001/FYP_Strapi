@@ -56,15 +56,7 @@ module.exports = {
         },
       });
 
-
-      // const token_entry = await strapi.entityService.create('api::token.token', {
-      //   data: {
-      //     publishedAt: Date.now(),
-      //     project_id: project_entry.id
-      //   }
-      // })
       const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
-
       const currentDate = new Date();
       const createdDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
       const oneDayInMS = 24 * 60 * 60 * 1000;

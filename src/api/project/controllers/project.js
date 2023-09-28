@@ -96,7 +96,5 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
     } catch (error) {
       await errorHandler(ctx, error);
     }
-  }
-  
-  //TODO: customise findOne method so that vendor cannot get other vendor's project
+  },
 }));

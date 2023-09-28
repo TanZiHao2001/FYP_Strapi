@@ -193,65 +193,6 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
-  getParamEnum: async (ctx) => {
-    try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies.accessToken;
-      if (!accessToken) {
-        throw createError.Unauthorized();
-      }
-
-      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
-      if (!vendorId) {
-        throw createError.Unauthorized();
-      }
-
-      ctx.request.query = {
-        filters: {
-          access_controls: {
-            vendor_id: {
-              id: {
-                $eq: vendorId,
-              },
-            },
-            status: {
-              $eq: "Approved",
-            },
-          },
-        },
-        fields: ["api_collection_name"],
-        populate: {
-          api_ids: {
-            populate: {
-              api_param_ids: {
-                fields: ["param_name", "param_type", "param_description"],
-              },
-            },
-          },
-        },
-      };
-
-      const contentType = strapi.contentType(
-        "api::api-collection.api-collection"
-      );
-
-      const sanitizedQueryParams = await contentAPI.query(
-        ctx.query,
-        contentType
-      );
-
-      const entities = await strapi.entityService.findMany(
-        contentType.uid,
-        sanitizedQueryParams
-      );
-
-      const result = await contentAPI.output(entities, contentType);
-
-      return result;
-    } catch (error) {
-      await errorHandler(ctx, error);
-    }
-  },
 };
 
 
