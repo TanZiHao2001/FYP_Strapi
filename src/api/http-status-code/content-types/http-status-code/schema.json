@@ -1,0 +1,22 @@
+{
+  "kind": "collectionType",
+  "collectionName": "http_status_codes",
+  "info": {
+    "singularName": "http-status-code",
+    "pluralName": "http-status-codes",
+    "displayName": "http_status_code"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string",
+      "required": false
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

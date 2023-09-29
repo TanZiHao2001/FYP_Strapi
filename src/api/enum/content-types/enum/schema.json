@@ -30,6 +30,12 @@
       "relation": "manyToOne",
       "target": "api::api-param.api-param",
       "inversedBy": "enum_ids"
+    },
+    "error_obj_id": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::error-obj.error-obj",
+      "inversedBy": "enum_ids"
     }
   }
 }

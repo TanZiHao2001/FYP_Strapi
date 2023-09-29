@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "error_objs",
+  "info": {
+    "singularName": "error-obj",
+    "pluralName": "error-objs",
+    "displayName": "Error_obj",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "attr_name": {
+      "type": "string"
+    },
+    "attr_type": {
+      "type": "string"
+    },
+    "attr_description": {
+      "type": "text"
+    },
+    "child_attr_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::error-obj.error-obj"
+    },
+    "enum_ids": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::enum.enum",
+      "mappedBy": "error_obj_id"
+    }
+  }
+}
