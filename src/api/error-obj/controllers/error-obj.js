@@ -29,8 +29,11 @@ module.exports = createCoreController("api::error-obj.error-obj", ({ strapi }) =
         const childAttrfields = ["attr_name", "attr_type", "attr_description"];
 
         const error_obj = await strapi.entityService.findMany('api::error-obj.error-obj', {
-            fields: ["attr_name", "attr_type", "attr_description"],
-            populate: generatePopulate(maxDepth, childAttr, childAttrfields),
+          filters: {
+            isParent: true
+          },
+          fields: ["attr_name", "attr_type", "attr_description"],
+          populate: generatePopulate(maxDepth, childAttr, childAttrfields),
         })
 
         error_obj.forEach((item) => {
@@ -55,11 +58,13 @@ function generatePopulate(depth, foreignKey, fields) {
       populate: {
         enum_ids: {
           fields: ["enum_name", "enum_description"],
-          populate: generatePopulate(depth - 1, foreignKey, fields)
-        }
+        },
+        [foreignKey]: {
+          fields,
+        },
+        populate: generatePopulate(depth - 1, foreignKey, fields)
       }
     };
-  
     return populateObject;
   }
 

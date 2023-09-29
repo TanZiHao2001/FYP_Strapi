@@ -68,14 +68,7 @@ module.exports = {
                 },
               },
               api_ids: {
-                fields: [
-                  "api_name",
-                  "api_description",
-                  "api_return",
-                  "api_method",
-                  "api_endpoint",
-                  "api_response_json",
-                ],
+                fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
                 populate: {
                   api_req_code_ids: {
                     filters: {
@@ -119,8 +112,6 @@ module.exports = {
               })
           })
         })
-        // items.api_collections[0].api_ids[0].api_req_code = items.api_collections[0].api_ids[0].api_req_code_ids[0].api_req_code;
-        // delete items.api_collections[0].api_ids[0].api_req_code_ids;
         removeEmptyChildArrays(items)
       });
       return result;
@@ -226,7 +217,6 @@ function removeEmptyChildArrays(obj) {
   }
 }
 
-
 function generatePopulate(depth, foreignKey, fields) {
   if (depth <= 0) {
     return {};
@@ -238,11 +228,13 @@ function generatePopulate(depth, foreignKey, fields) {
     populate: {
       enum_ids: {
         fields: ["enum_name", "enum_description"],
-        populate: generatePopulate(depth - 1, foreignKey, fields)
-      }
+      },
+      [foreignKey]: {
+        fields,
+      },
+      populate: generatePopulate(depth - 1, foreignKey, fields)
     }
   };
-
   return populateObject;
 }
 

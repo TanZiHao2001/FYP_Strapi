@@ -31,6 +31,10 @@
       "relation": "oneToMany",
       "target": "api::enum.enum",
       "mappedBy": "error_obj_id"
+    },
+    "isParent": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
