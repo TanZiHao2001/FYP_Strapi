@@ -1718,7 +1718,7 @@
     "@strapi/utils" "4.12.4"
     "fs-extra" "10.0.0"
 
-"@strapi/strapi@^4.0.0", "@strapi/strapi@^4.0.7", "@strapi/strapi@^4.3.4", "@strapi/strapi@^4.9.0", "@strapi/strapi@4.12.4", "@strapi/strapi@4.x.x":
+"@strapi/strapi@^4.0.0", "@strapi/strapi@^4.0.7", "@strapi/strapi@^4.3.4", "@strapi/strapi@^4.9.0", "@strapi/strapi@4.12.4":
   "integrity" "sha512-jhjgaTEnwQ/d9TFdK2RjUEoDE0zNEFrbXiBpWr/s1SQqPzJasuTcRtVc4rCfBNhkJ5tFp2Jw8s3NbzUtQXXqYA=="
   "resolved" "https://registry.npmjs.org/@strapi/strapi/-/strapi-4.12.4.tgz"
   "version" "4.12.4"
@@ -8605,11 +8605,6 @@
   "integrity" "sha512-Rz6yejtVyWnVjC1RFvNmYL10kgjC49EOghxWn0RFqlCHGFpQx+Xe7yW3I4ceK1SGrWIGMjD5Kbue8W/udkbMJg=="
   "resolved" "https://registry.npmjs.org/std-env/-/std-env-3.3.3.tgz"
   "version" "3.3.3"
-
-"strapi-plugin-custom-api@^1.0.4":
-  "integrity" "sha512-rFxrEHxvZ/CVrZH5gb4J7GhBX8yDsR2nXzIoj49CdGvtLMq15Unb46ryBpuq+nvnYfII179WkcOJvwzDlhfLCg=="
-  "resolved" "https://registry.npmjs.org/strapi-plugin-custom-api/-/strapi-plugin-custom-api-1.0.4.tgz"
-  "version" "1.0.4"
 
 "strapi-plugin-transformer@^3.1.0":
   "integrity" "sha512-wSWntxTeyx+9gTLsR7/rxAcx13PG+AGaLFUHARXu0cZOeULCtLHTgVbGnn0TvzlL/hUq21IKFZRuGF1amsgrzA=="
