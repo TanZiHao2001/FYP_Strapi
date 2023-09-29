@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "error_types",
+  "info": {
+    "singularName": "error-type",
+    "pluralName": "error-types",
+    "displayName": "Error_type"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}
