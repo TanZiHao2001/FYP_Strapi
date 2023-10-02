@@ -196,7 +196,7 @@ module.exports = {
       });
 
       if (result.length !== 0) {
-        throw new Error("Email already existed!");
+        return ctx.send({error: "Email already existed!"});
       }
       const entry = await strapi.entityService.create("api::vendor.vendor", {
         data: {
