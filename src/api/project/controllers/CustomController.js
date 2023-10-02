@@ -251,10 +251,6 @@ module.exports = {
         fields: ["project_name", "description"]
       })
 
-      if( (project_name === projectDetails.project_name) && (description === projectDetails.description) ){
-        throw createError.UnprocessableEntity("No field is required to update!");
-      }
-
       const update_project = await strapi.entityService.update('api::project.project', projectId, {
         data:{
           project_name: project_name ? project_name : projectDetails.project_name,
