@@ -22,14 +22,15 @@ module.exports = createCoreController('api::access-control.access-control', ({st
       if (!vendorId) {
         throw createError.Unauthorized();
       }
-
+      
       ctx.request.query = {
         filters: {
+          status: "Approved",
           vendor_id: {
             id: {
               $eq: vendorId,
             },
-          }
+          },
         },
         fields: ['status'],
         publicationState: 'live',
