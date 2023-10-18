@@ -38,6 +38,9 @@ module.exports = {
               status: {
                 $eq: "Approved",
               },
+              publishedAt: {
+                $null: false,
+              },
             },
           },
         },
@@ -54,6 +57,9 @@ module.exports = {
                 },
                 status: {
                   $eq: "Approved",
+                },
+                publishedAt: {
+                  $null: false,
                 },
               },
             },
@@ -109,7 +115,7 @@ module.exports = {
       if (result.length === 0) {
         return ctx.send([]);
       }
-
+      
       result.forEach((items) => {
         items.api_collections.forEach((api_collection) => {
           api_collection.api_ids.forEach((api_id) => {
