@@ -23,6 +23,7 @@ module.exports = {
 
       const entries = await strapi.entityService.findMany('api::access-control.access-control', {
         filters: {
+          publicationState: 'live',
           status: 'Approved',
           vendor_id: {
             id: vendorId
@@ -33,7 +34,8 @@ module.exports = {
         },
         populate: {
           api_collection_id: {
-            fields: ["api_collection_name"]
+            fields: ["api_collection_name"],
+            publicationState: 'live',
           }
         }
       });
@@ -116,22 +118,27 @@ module.exports = {
 
       const entry = await strapi.entityService.findOne('api::project.project', projectId, {
         fields: ["id"],
+        publicationState: 'live',
         populate: {
           project_apis: {
             fields: ["id"],
+            publicationState: 'live',
             populate: {
               api_collection_id: {
-                fields: ["api_collection_name", "description"]
+                fields: ["api_collection_name", "description"],
+                publicationState: 'live',
               }
             }
           }
         }
       });
       entry.project_apis.forEach((project_api) => {
-        project_api.api_collection_name = project_api.api_collection_id.api_collection_name;
-        project_api.description = project_api.api_collection_id.description;
-        delete project_api.api_collection_id;
-        delete project_api.project_id;
+        if(project_api.api_collection_id !== null){
+          project_api.api_collection_name = project_api.api_collection_id.api_collection_name;
+          project_api.description = project_api.api_collection_id.description;
+          delete project_api.api_collection_id;
+          delete project_api.project_id;
+        }
       })
       return entry.project_apis;
     } catch (error) {
