@@ -32,9 +32,11 @@ module.exports = createCoreController('api::access-control.access-control', ({st
           }
         },
         fields: ['status'],
+        publicationState: 'live',
         populate: {
           api_collection_id: {
-            fields: ['api_collection_name']
+            fields: ['api_collection_name'],
+            publicationState: 'live',
           },
         }
       }
@@ -44,10 +46,11 @@ module.exports = createCoreController('api::access-control.access-control', ({st
       const entities = await strapi.entityService.findMany(contentType.uid, sanitizedQueryParams)
       const result = await contentAPI.output(entities, contentType);
 
-
       result.forEach(item => {
-        item.api_collection_name = item.api_collection_id.api_collection_name;
-        item.api_collection_id = item.api_collection_id.id;
+        if(item.api_collection_id !== null){
+          item.api_collection_name = item.api_collection_id.api_collection_name;
+          item.api_collection_id = item.api_collection_id.id;
+        }
       });
 
       return result;
