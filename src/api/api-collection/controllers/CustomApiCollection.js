@@ -42,6 +42,7 @@ module.exports = {
           },
         },
         fields: ["category_name"],
+        publicationState: 'live',
         populate: {
           api_collections: {
             filters: {
@@ -57,27 +58,33 @@ module.exports = {
               },
             },
             fields: ["api_collection_name", "description"],
+            publicationState: 'live',
             populate: {
               object_id: {
                 fields: ["object"],
+                publicationState: 'live',
                 populate: {
                   attr_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
                     populate: generatePopulate(maxDepth, childAttr, childAttrfields),
                   },
                 },
               },
               api_ids: {
                 fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
+                publicationState: 'live',
                 populate: {
                   api_req_code_ids: {
                     filters: {
                       lang_name: lang_name,
                     },
                     fields: ["lang_name", "api_req_code"],
+                    publicationState: 'live',
                   },
                   api_param_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
                     populate: generatePopulate(maxDepth, childParam, childParamFields),
                   },
                 },
@@ -146,6 +153,7 @@ module.exports = {
           },
         },
         fields: ["category_name"],
+        publicationState: 'live',
         populate: {
           api_collections: {
             filters: {
@@ -160,7 +168,8 @@ module.exports = {
                 },
               },
             },
-            fields: ["api_collection_name", "description"]
+            fields: ["api_collection_name", "description"],
+            publicationState: 'live',
           },
         },
       };
@@ -228,6 +237,7 @@ function generatePopulate(depth, foreignKey, fields) {
     populate: {
       enum_ids: {
         fields: ["enum_name", "enum_description"],
+        publicationState: 'live',
       },
       [foreignKey]: {
         fields,

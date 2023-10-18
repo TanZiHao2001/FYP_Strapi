@@ -37,9 +37,11 @@ module.exports = createCoreController(
             }
           },
           fields: ["status"],
+          publicationState: 'live',
           populate: {
             api_collection_id: {
               fields: ["api_collection_name", "description"],
+              publicationState: 'live',
             },
           },
         };
@@ -59,9 +61,11 @@ module.exports = createCoreController(
         const result = await contentAPI.output(entities, contentType);
 
         result.forEach((item) => {
-          item.api_collection_name = item.api_collection_id.api_collection_name;
-          item.api_collection_description = item.api_collection_id.description;
-          item.api_collection_id = item.api_collection_id.id;
+          if(item.api_collection_id !== null){
+            item.api_collection_name = item.api_collection_id.api_collection_name;
+            item.api_collection_description = item.api_collection_id.description;
+            item.api_collection_id = item.api_collection_id.id;
+          }
         });
 
         return result;
