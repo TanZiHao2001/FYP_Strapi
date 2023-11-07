@@ -23,8 +23,8 @@ module.exports = {
       const maxDepth = 4; 
       const childAttr = "child_attr_ids"
       const childAttrfields = ["attr_name", "attr_type", "attr_description"];
-      const childParam = "child_param_id";
-      const childParamFields = ["child_name", "child_type", "child_description"];
+      const childParam = "child_attr_ids";
+      const childParamFields = ["attr_name", "attr_type", "attr_description"];
       
       ctx.request.query = {
         filters: {

@@ -29,7 +29,7 @@
       "private": true,
       "inversedBy": "api_param_ids"
     },
-    "child_param_id": {
+    "child_attr_ids": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::api-param.api-param"
