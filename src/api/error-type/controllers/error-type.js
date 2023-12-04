@@ -25,7 +25,8 @@ module.exports = createCoreController("api::error-type.error-type", ({ strapi })
         }
 
         const http_status_code = await strapi.entityService.findMany('api::error-type.error-type', {
-            fields: ["code", "description"]
+            fields: ["code", "description"],
+            publicationState: 'live',
         })
         return http_status_code
       } catch (error) {

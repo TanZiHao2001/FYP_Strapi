@@ -23,8 +23,8 @@ module.exports = {
       const maxDepth = 4; 
       const childAttr = "child_attr_ids"
       const childAttrfields = ["attr_name", "attr_type", "attr_description"];
-      const childParam = "child_param_id";
-      const childParamFields = ["child_name", "child_type", "child_description"];
+      const childParam = "child_attr_ids";
+      const childParamFields = ["attr_name", "attr_type", "attr_description"];
       
       ctx.request.query = {
         filters: {
@@ -38,10 +38,14 @@ module.exports = {
               status: {
                 $eq: "Approved",
               },
+              publishedAt: {
+                $null: false,
+              },
             },
           },
         },
         fields: ["category_name"],
+        publicationState: 'live',
         populate: {
           api_collections: {
             filters: {
@@ -54,30 +58,39 @@ module.exports = {
                 status: {
                   $eq: "Approved",
                 },
+                publishedAt: {
+                  $null: false,
+                },
               },
             },
             fields: ["api_collection_name", "description"],
+            publicationState: 'live',
             populate: {
               object_id: {
                 fields: ["object"],
+                publicationState: 'live',
                 populate: {
                   attr_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
                     populate: generatePopulate(maxDepth, childAttr, childAttrfields),
                   },
                 },
               },
               api_ids: {
                 fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
+                publicationState: 'live',
                 populate: {
                   api_req_code_ids: {
                     filters: {
                       lang_name: lang_name,
                     },
                     fields: ["lang_name", "api_req_code"],
+                    publicationState: 'live',
                   },
                   api_param_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
                     populate: generatePopulate(maxDepth, childParam, childParamFields),
                   },
                 },
@@ -102,7 +115,7 @@ module.exports = {
       if (result.length === 0) {
         return ctx.send([]);
       }
-
+      
       result.forEach((items) => {
         items.api_collections.forEach((api_collection) => {
           api_collection.api_ids.forEach((api_id) => {
@@ -146,6 +159,7 @@ module.exports = {
           },
         },
         fields: ["category_name"],
+        publicationState: 'live',
         populate: {
           api_collections: {
             filters: {
@@ -160,7 +174,8 @@ module.exports = {
                 },
               },
             },
-            fields: ["api_collection_name", "description"]
+            fields: ["api_collection_name", "description"],
+            publicationState: 'live',
           },
         },
       };
@@ -228,6 +243,7 @@ function generatePopulate(depth, foreignKey, fields) {
     populate: {
       enum_ids: {
         fields: ["enum_name", "enum_description"],
+        publicationState: 'live',
       },
       [foreignKey]: {
         fields,

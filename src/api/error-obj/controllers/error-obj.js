@@ -33,6 +33,7 @@ module.exports = createCoreController("api::error-obj.error-obj", ({ strapi }) =
             isParent: true
           },
           fields: ["attr_name", "attr_type", "attr_description"],
+          publicationState: 'live',
           populate: generatePopulate(maxDepth, childAttr, childAttrfields),
         })
 
@@ -58,9 +59,11 @@ function generatePopulate(depth, foreignKey, fields) {
       populate: {
         enum_ids: {
           fields: ["enum_name", "enum_description"],
+          publicationState: 'live',
         },
         [foreignKey]: {
           fields,
+          publicationState: 'live',
         },
         populate: generatePopulate(depth - 1, foreignKey, fields)
       }

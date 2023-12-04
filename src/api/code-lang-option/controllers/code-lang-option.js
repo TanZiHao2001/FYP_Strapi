@@ -28,6 +28,7 @@ module.exports = createCoreController('api::code-lang-option.code-lang-option', 
 
       ctx.request.query = {
         fields: ["Label", 'LanguageCode','iconUrl'],
+        publicationState: 'live',
       };
 
       const contentType = strapi.contentType("api::code-lang-option.code-lang-option");

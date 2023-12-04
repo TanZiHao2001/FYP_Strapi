@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
 const {filter} = require("../../../../config/middlewares");
+const { create } = require("tar");
 
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
@@ -49,7 +50,7 @@ cron.schedule("* * * * *", async () => {
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
-    const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
+    const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
       <head>
@@ -154,6 +155,10 @@ module.exports = {
         where: {email: email},
       });
 
+      if(entry.publishedAt === null){
+        return ctx.send({error: "Account has been blocked, please contact admin"});
+      }
+
       if (!entry || entry.password === null) {
         return ctx.send({error: "Invalid email / password"});
       }
@@ -248,7 +253,11 @@ module.exports = {
         path: "/",
       });
 
-
+      const user = await strapi.entityService.findOne("api::vendor.vendor", id)
+      if(user.publishedAt === null){
+        throw new Error("Account has been blocked, please contact admin");
+      }
+      
       await strapi.entityService.update("api::vendor.vendor", id, {
         data: {
           password: password,
@@ -353,8 +362,8 @@ module.exports = {
       const verifyToken = await signToken("verifyToken", result[0].id);
       const link =
         result[0].password == null
-          ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          : `http://localhost:4200/sign/reset-password?token=${verifyToken}`;
+          ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
+          : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
       const message =
         result[0].password == null

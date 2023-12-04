@@ -22,7 +22,8 @@ module.exports = createCoreController(
               $eq: true,
             },
           },
-          fields: ["announcement_text", "createdAt"]
+          fields: ["announcement_text", "createdAt"],
+          publicationState: 'live',
         };
 
         const contentType = strapi.contentType(

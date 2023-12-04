@@ -14,6 +14,7 @@ module.exports = createCoreController("api::guide.guide", ({ strapi }) => ({
   async find(ctx) {
     try {
       ctx.request.query = {
+        publicationState: 'live',
         fields: ["id", "guide_name", "answer"],
       };
       const contentType = strapi.contentType("api::guide.guide");
