@@ -34,9 +34,7 @@
       "enum": [
         "Pending",
         "Approved",
-        "Rejected",
-        "Email Sent",
-        "Activated"
+        "Rejected"
       ]
     },
     "access_controls": {
@@ -53,6 +51,12 @@
     },
     "refresh_token": {
       "type": "text"
+    },
+    "emailSentTime": {
+      "type": "datetime"
+    },
+    "activatedTime": {
+      "type": "datetime"
     }
   }
 }

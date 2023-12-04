@@ -19,37 +19,31 @@ const transporter = nodemailer.createTransport({
 });
 //0 8 * * 1-5
 cron.schedule("* * * * *", async () => {
-  // const result = await strapi.db.query("api::vendor.vendor").findMany({
-  //   where: {
-  //     status: {
-  //       $eq: "Approved",
-  //     },
-  //   },
-  //   filters: {
-  //     status: "Approved"
-  //   }
-  // });
   const result = await strapi.entityService.findMany("api::vendor.vendor", {
     filters: {
       status: "Approved",
       refresh_token: {
         $null: true,
-      },
+      }
     },
   });
+
   if (result.length === 0) {
     return;
   }
 
-  const filteredResult = result.filter((user) => user.password === null);
+  const filteredResult = result.filter((user) => {
+    return user.password === null &&
+    (Date.now() - user.emailSentTime) >= (24 * 60 * 60 * 1000);
+  });
+
   if (filteredResult.length === 0) {
     return;
   }
-
-
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
+    // const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
     const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
@@ -98,7 +92,8 @@ cron.schedule("* * * * *", async () => {
 
     const changeStatus = await strapi.entityService.update('api::vendor.vendor', item.id, {
       data: {
-        status: "Email Sent",
+        status: "Approved",
+        emailSentTime: Date.now(),
       },
     })
   })
@@ -262,7 +257,8 @@ module.exports = {
         data: {
           password: password,
           refresh_token: refreshToken,
-          status: "Activated"
+          status: "Approved",
+          activatedTime: Date.now()
         },
       });
       ctx.send({message: "Successful"});
