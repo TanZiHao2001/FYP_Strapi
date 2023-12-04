@@ -18,5 +18,13 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'GET',
+      path: '/custom/getVendorList',
+      handler: CustomController.getVendorList,
+      config: {
+        auth: false
+      }
+    },
   ]
 }

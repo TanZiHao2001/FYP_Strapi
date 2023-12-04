@@ -63,4 +63,34 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  async getVendorList(ctx){
+    try {
+      ctx.request.query = {
+        fields: ["username", "email", "status"],
+      };
+      const contentType = strapi.contentType("api::vendor.vendor");
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.request.query,
+        contentType
+      );
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+      const vendorList = await contentAPI.output(entities, contentType);
+      
+      const statusOrder = {
+        "Pending": 1,
+        "Activated": 2,
+        "Email Sent": 3,
+        "Approved": 4,
+        "Rejected": 5 
+      };
+      
+      vendorList.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+      return vendorList;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  }
 };
