@@ -12,6 +12,9 @@
   },
   "pluginOptions": {},
   "attributes": {
+    "title": {
+      "type": "string"
+    },
     "announcement_text": {
       "type": "richtext",
       "required": true
@@ -21,8 +24,11 @@
       "default": false,
       "required": true
     },
-    "title": {
-      "type": "string"
+    "startDate": {
+      "type": "datetime"
+    },
+    "endDate": {
+      "type": "datetime"
     }
   }
 }
