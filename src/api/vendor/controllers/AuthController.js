@@ -34,7 +34,7 @@ cron.schedule("* * * * *", async () => {
 
   const filteredResult = result.filter((user) => {
     return user.password === null &&
-    (Date.now() - user.emailSentTime) >= (24 * 60 * 60 * 1000);
+    (Date.now() - new Date(user.emailSentTime).getTime()) >= (24 * 60 * 60 * 1000);
   });
 
   if (filteredResult.length === 0) {
