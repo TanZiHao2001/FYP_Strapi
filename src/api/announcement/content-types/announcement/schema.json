@@ -4,7 +4,8 @@
   "info": {
     "singularName": "announcement",
     "pluralName": "announcements",
-    "displayName": "announcement"
+    "displayName": "announcement",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -19,6 +20,9 @@
       "type": "boolean",
       "default": false,
       "required": true
+    },
+    "title": {
+      "type": "string"
     }
   }
 }
