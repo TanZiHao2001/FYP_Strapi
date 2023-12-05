@@ -128,6 +128,38 @@ module.exports = {
       await errorHandler(ctx, error)
     }
   },
+  async blockVendor (ctx) {
+    try{
+      const {id} = ctx.request.body;
+      const update = await strapi.entityService.update('api::vendor.vendor', id, {
+        data: {
+          "status": "Rejected",
+        }
+      });
+      ctx.send({message: "Vendor has been blocked"});
+    } catch (error) {
+      errorHandler(ctx, error);
+    }
+  },
+  async unblockVendor (ctx) {
+    try{
+      const {id} = ctx.request.body;
+      console.log(ctx.request.body);
+      
+      const update = await strapi.entityService.update('api::vendor.vendor', id, {
+        data: {
+          "status": "Approved",
+        }
+      });
+      if(update.emailSentTime === null){
+        ctx.request.body = { email: update.email };
+        AuthController.sendEmail(ctx);
+      }
+      return update;
+    } catch (error) {
+      errorHandler(ctx, error);
+    }
+  }
 };
 
 
