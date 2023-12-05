@@ -5,6 +5,7 @@ const {errorHandler} = require("../../error_helper");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const bcrypt = require("bcryptjs");
+const AuthController = require('./AuthController')
 
 module.exports = {
   async updateProfile(ctx) {
@@ -90,5 +91,47 @@ module.exports = {
     } catch (error) {
       await errorHandler(ctx, error);
     }
-  }
+  },
+  async createUser (ctx){
+    try {
+      const {email, organisation} = ctx.request.body;
+
+      if (!validateEmail(email)) {
+        throw new Error("Please enter a valid email!");
+      }
+      const result = await strapi.db.query("api::vendor.vendor").findMany({
+        where: {
+          email: {
+            $eq: email,
+          },
+        },
+      });
+
+      if (result.length !== 0) {
+        return ctx.send({error: "Email already existed!"});
+      }
+      const entry = await strapi.entityService.create("api::vendor.vendor", {
+        data: {
+          email: email,
+          username: email.split("@")[0],
+          organisation: organisation,
+          status: "Approved",
+          publishedAt: Date.now(),
+          emailSentDate: Date.now(),
+        },
+      });
+
+      AuthController.sendEmail(ctx);
+
+      ctx.send({message: "Vendor created, an email has been sent to the vendor"});
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
 };
+
+
+function validateEmail(email) {
+  var re = /\S+@\S+\.\S+/;
+  return re.test(email);
+}

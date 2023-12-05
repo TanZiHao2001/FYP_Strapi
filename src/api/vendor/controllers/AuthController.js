@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 //0 8 * * 1-5
-cron.schedule("* * * * *", async () => {
+cron.schedule("0 8 * * 1-5", async () => {
   const result = await strapi.entityService.findMany("api::vendor.vendor", {
     filters: {
       status: "Approved",

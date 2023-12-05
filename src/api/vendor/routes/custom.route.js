@@ -26,5 +26,13 @@ module.exports = {
         auth: false
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/create-user',
+      handler: CustomController.createUser,
+      config: {
+        auth: false
+      }
+    }
   ]
 }
