@@ -44,8 +44,17 @@ module.exports = {
         }));
         return finalResult;
       } catch (error) {
-        errorHandler(ctx, error)
+        errorHandler(ctx, error);
       }
+    },
+    deleteAnnouncement: async (ctx) => {
+        try{
+            const announcementId = ctx.params.id;
+            const entry = await strapi.entityService.delete('api::announcement.announcement', announcementId);
+            ctx.send({message: "Announcement Deleted"});
+        } catch(error) {
+            errorHandler(ctx, error);
+        }
     }
   };
 

@@ -411,7 +411,11 @@ module.exports = {
           console.log("Email sent:", info.response);
         }
       });
-
+      const entry = strapi.entityService.update('api::vendor.vendor', result[0].id, {
+        data: {
+          status: "Approved"
+        }
+      });
       ctx.send({message: "Email sent"});
     } catch (error) {
       await errorHandler(ctx, error)

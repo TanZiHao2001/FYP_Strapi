@@ -12,5 +12,14 @@ module.exports = {
         auth: false,
       },
     },
+    {
+      method: 'DELETE',
+      path: '/custom/delete-announcement/:id',
+      handler: CustomAnnouncement.deleteAnnouncement,
+      config: {
+        auth: false,
+      }
+
+    }
   ]
 }
