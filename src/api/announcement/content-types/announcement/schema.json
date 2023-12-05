@@ -23,6 +23,12 @@
       "type": "boolean",
       "default": false,
       "required": true
+    },
+    "startDate": {
+      "type": "datetime"
+    },
+    "endDate": {
+      "type": "datetime"
     }
   }
 }
