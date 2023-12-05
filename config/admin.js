@@ -9,5 +9,5 @@ module.exports = ({ env }) => ({
     token: {
       salt: env('TRANSFER_TOKEN_SALT'),
     },
-  },
+  }
 });
