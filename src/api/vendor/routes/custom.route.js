@@ -33,6 +33,22 @@ module.exports = {
       config: {
         auth: false
       }
-    }
+    },
+    {
+      method: 'POST',
+      path: '/custom/block-vendor',
+      handler: CustomController.blockVendor,
+      config: {
+        auth: false
+      }
+    },
+    {
+      method: 'POST',
+      path: '/custom/unblock-vendor',
+      handler: CustomController.unblockVendor,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
