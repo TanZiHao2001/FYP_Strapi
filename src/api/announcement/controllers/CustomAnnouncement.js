@@ -9,7 +9,7 @@ module.exports = {
     getAnnouncementList: async (ctx) => {
       try {
         ctx.request.query = {
-            fields: ["title", "startDate", "endDate"],
+            fields: ["title", "description", "startDate", "endDate"],
             publicationState: 'live',
         };
   
@@ -35,9 +35,10 @@ module.exports = {
         tempResult.upcoming.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
         tempResult.expired.sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
 
-        const finalResult = [...tempResult.active, ...tempResult.upcoming, ...tempResult.expired].map(({ id, title, startDate, endDate }) => ({
+        const finalResult = [...tempResult.active, ...tempResult.upcoming, ...tempResult.expired].map(({ id, title, description, startDate, endDate }) => ({
             id,
             title,
+            description,
             startDate,
             endDate
         }));
