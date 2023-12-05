@@ -19,6 +19,12 @@
       "relation": "oneToMany",
       "target": "api::api-coll-obj-attr.api-coll-obj-attr",
       "mappedBy": "object_id"
+    },
+    "api_collection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::api-collection.api-collection",
+      "inversedBy": "object_id"
     }
   }
 }

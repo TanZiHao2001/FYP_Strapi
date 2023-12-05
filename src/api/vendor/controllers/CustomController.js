@@ -81,10 +81,8 @@ module.exports = {
       
       const statusOrder = {
         "Pending": 1,
-        "Activated": 2,
-        "Email Sent": 3,
-        "Approved": 4,
-        "Rejected": 5 
+        "Approved": 2,
+        "Rejected": 3 
       };
       
       vendorList.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
