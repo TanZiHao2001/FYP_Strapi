@@ -29,6 +29,9 @@
     },
     "endDate": {
       "type": "datetime"
+    },
+    "description": {
+      "type": "text"
     }
   }
 }
