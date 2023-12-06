@@ -144,7 +144,6 @@ module.exports = {
   async unblockVendor (ctx) {
     try{
       const {id} = ctx.request.body;
-      console.log(ctx.request.body);
       
       const update = await strapi.entityService.update('api::vendor.vendor', id, {
         data: {
@@ -155,7 +154,7 @@ module.exports = {
         ctx.request.body = { email: update.email };
         AuthController.sendEmail(ctx);
       }
-      return update;
+      ctx.send({message: "Vendor has been unblocked"});
     } catch (error) {
       errorHandler(ctx, error);
     }

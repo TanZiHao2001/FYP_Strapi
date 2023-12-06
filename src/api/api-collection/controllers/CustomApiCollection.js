@@ -34,6 +34,9 @@ module.exports = {
                 id: {
                   $eq: vendorId,
                 },
+                // status: {
+                //   $eq: "Approved",
+                // }
               },
               status: {
                 $eq: "Approved",
