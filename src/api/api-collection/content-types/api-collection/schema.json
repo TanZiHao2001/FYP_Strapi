@@ -29,7 +29,6 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::api-category.api-category",
-      "private": true,
       "inversedBy": "api_collections"
     },
     "project_apis": {

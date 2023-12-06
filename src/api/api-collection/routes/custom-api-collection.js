@@ -19,6 +19,14 @@ module.exports = {
       config: {
         auth: false,
       }
-    }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-all-api-collection',
+      handler: CustomApiCollection.getAllApiCollection,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
