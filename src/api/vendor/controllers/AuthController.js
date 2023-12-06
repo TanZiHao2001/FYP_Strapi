@@ -150,7 +150,7 @@ module.exports = {
         where: {email: email},
       });
 
-      if(entry.publishedAt === null){
+      if(entry.publishedAt === null || entry.status === 'Rejected'){
         return ctx.send({error: "Account has been blocked, please contact admin"});
       }
 
@@ -413,7 +413,8 @@ module.exports = {
       });
       const entry = strapi.entityService.update('api::vendor.vendor', result[0].id, {
         data: {
-          status: "Approved"
+          status: "Approved",
+          emailSentTime: Date.now(),
         }
       });
       ctx.send({message: "Email sent"});
