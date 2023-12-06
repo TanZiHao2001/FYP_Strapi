@@ -138,7 +138,7 @@ module.exports = {
       });
       ctx.send({message: "Vendor has been blocked"});
     } catch (error) {
-      errorHandler(ctx, error);
+      await errorHandler(ctx, error);
     }
   },
   async unblockVendor (ctx) {
@@ -156,7 +156,7 @@ module.exports = {
       }
       ctx.send({message: "Vendor has been unblocked"});
     } catch (error) {
-      errorHandler(ctx, error);
+      await errorHandler(ctx, error);
     }
   }
 };

@@ -202,6 +202,61 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  getAllApiCollection: async (ctx) => {
+    try {
+
+      // const count = await strapi.query("api::api-collection.api-collection").count({
+      //   where: {
+      //     id: {
+      //       $eq: 6
+      //     }
+      //   }
+      // })
+
+      /*
+      {
+        title : 'Inventory API',
+        CreatedDate : 'date',
+        numberOfEndpoint : 10,
+        tags : 'api-category name'
+      }
+      */
+      ctx.request.query = {
+        fields: ['api_collection_name', 'createdAt'],
+        publicationState: 'live',
+        populate: {
+          api_category_id: {
+            fields: ['category_name'],
+            publicationState: 'live',
+          }
+        }
+      }
+      const contentType = strapi.contentType("api::api-collection.api-collection");
+
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.query,
+        contentType
+      );
+
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+
+      const result = await contentAPI.output(entities, contentType);
+      
+      result.forEach(item => {
+        item.count = "10";
+        item.api_category_name = item.api_category_id.category_name;
+        delete item.api_category_id;
+        // item.api_collection_id = item.api_collection_id.id;
+      });
+
+      return result;
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
 };
 
 
