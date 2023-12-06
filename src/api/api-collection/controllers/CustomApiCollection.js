@@ -213,14 +213,6 @@ module.exports = {
       //   }
       // })
 
-      /*
-      {
-        title : 'Inventory API',
-        CreatedDate : 'date',
-        numberOfEndpoint : 10,
-        tags : 'api-category name'
-      }
-      */
       ctx.request.query = {
         fields: ['api_collection_name', 'createdAt'],
         publicationState: 'live',
@@ -228,8 +220,11 @@ module.exports = {
           api_category_id: {
             fields: ['category_name'],
             publicationState: 'live',
+          },
+          api_ids: {
+            fields:['id'],
           }
-        }
+        },
       }
       const contentType = strapi.contentType("api::api-collection.api-collection");
 
@@ -244,12 +239,12 @@ module.exports = {
       );
 
       const result = await contentAPI.output(entities, contentType);
-      
+
       result.forEach(item => {
-        item.count = "10";
+        item.count = item.api_ids.length
         item.api_category_name = item.api_category_id.category_name;
         delete item.api_category_id;
-        // item.api_collection_id = item.api_collection_id.id;
+        delete item.api_ids;
       });
 
       return result;
