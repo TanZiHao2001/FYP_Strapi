@@ -404,20 +404,22 @@ module.exports = {
       };
 
       // Send the email
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.log("Error sending email:", error);
-        } else {
-          console.log("Email sent:", info.response);
-        }
-      });
-      const entry = strapi.entityService.update('api::vendor.vendor', result[0].id, {
+      
+      await sendMail(mailOptions)
+      // transporter.sendMail(mailOptions, (error, info) => {
+      //   if (error) {
+      //     console.log("Error sending email:", error);
+      //   } else {
+      //     console.log("Email sent:", info.response);
+      //   }
+      // });
+      const entry = await strapi.entityService.update('api::vendor.vendor', result[0].id, {
         data: {
           status: "Approved",
           emailSentTime: Date.now(),
         }
       });
-      ctx.send({message: "Email sent"});
+      await ctx.send({message: "Email sent"});
     } catch (error) {
       await errorHandler(ctx, error)
     }
@@ -441,3 +443,30 @@ module.exports = {
     }
   },
 };
+
+// async function sendMail(mailOptions) {
+//   try{
+//     transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.log("Error sending email:", error);
+//       } else {
+//         console.log("Email sent:", info.response);
+//       }
+//     });
+//   } catch (error) {
+//     errorHandler(error);
+//   }
+// }
+function sendMail(mailOptions) {
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log("Error sending email:", error);
+        resolve(error); // Reject the promise with the error
+      } else {
+        console.log("Email sent:", info.response);
+        resolve(info); // Resolve the promise with the info object
+      }
+    });
+  });
+}
