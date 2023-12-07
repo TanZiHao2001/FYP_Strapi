@@ -1,5 +1,7 @@
 const JWT = require('jsonwebtoken')
 const createError = require('http-errors')
+const {sanitize} = require("@strapi/utils");
+const {contentAPI} = sanitize;
 
 module.exports = {
   signToken: (type, userId) => {
@@ -33,7 +35,7 @@ module.exports = {
         refreshToken: process.env.REFRESH_TOKEN_SECRET,
         verifyToken: process.env.VERIFY_TOKEN_SECRET
       };
-      JWT.verify(token, secrets[type], (err, payload) => {
+      JWT.verify(token, secrets[type], async (err, payload) => {
         if (err) {
           if (err.name === 'JsonWebTokenError') {
             resolve()
@@ -41,7 +43,13 @@ module.exports = {
             resolve()
           }
         }
-        resolve(payload.aud)
+        const status = await strapi.entityService.findOne("api::vendor.vendor", payload.aud, {
+          fields: ["status"],
+        })
+        if(status.status === 'Pending' || status.status === 'Rejected'){
+          resolve(null);
+        }
+        resolve(payload.aud);
       })
     })
   },
