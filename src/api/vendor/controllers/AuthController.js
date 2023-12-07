@@ -404,15 +404,15 @@ module.exports = {
       };
 
       // Send the email
+      // await sendMail(mailOptions)
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log("Error sending email:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
       
-      await sendMail(mailOptions)
-      // transporter.sendMail(mailOptions, (error, info) => {
-      //   if (error) {
-      //     console.log("Error sending email:", error);
-      //   } else {
-      //     console.log("Email sent:", info.response);
-      //   }
-      // });
       const entry = await strapi.entityService.update('api::vendor.vendor', result[0].id, {
         data: {
           status: "Approved",
@@ -444,19 +444,6 @@ module.exports = {
   },
 };
 
-// async function sendMail(mailOptions) {
-//   try{
-//     transporter.sendMail(mailOptions, (error, info) => {
-//       if (error) {
-//         console.log("Error sending email:", error);
-//       } else {
-//         console.log("Email sent:", info.response);
-//       }
-//     });
-//   } catch (error) {
-//     errorHandler(error);
-//   }
-// }
 function sendMail(mailOptions) {
   return new Promise((resolve, reject) => {
     transporter.sendMail(mailOptions, (error, info) => {
