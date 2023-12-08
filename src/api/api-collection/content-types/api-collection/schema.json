@@ -49,6 +49,10 @@
       "relation": "oneToMany",
       "target": "api::api.api",
       "mappedBy": "api_collection_id"
+    },
+    "short_description": {
+      "type": "string",
+      "maxLength": 150
     }
   }
 }

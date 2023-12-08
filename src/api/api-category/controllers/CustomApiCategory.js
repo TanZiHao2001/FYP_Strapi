@@ -9,11 +9,11 @@ module.exports = {
     getAllApiCategory: async (ctx) => {
         try {
           ctx.request.query = {
-            fields: ['category_name', 'image_url', 'short_description'],
+            fields: ['category_name', 'image_url'],
             publicationState: 'live',
             populate: {
               api_collections: {
-                fields: ['api_collection_name', 'createdAt'],
+                fields: ['api_collection_name', 'createdAt', 'short_description'],
                 publicationState: 'live',
                 populate: {
                   api_ids: {
@@ -49,4 +49,18 @@ module.exports = {
           await errorHandler(ctx, error)
         }
     },
-};
+    createApiCategory: async (ctx) => {
+        try {
+            const {category_name, image_url} = ctx.request.body;
+            const entry = await strapi.entityService.create("api::api-category.api-category", {
+                data: {
+                    category_name: category_name,
+                    image_url: image_url,
+                    publishedAt: Date.now(),
+                  },
+            })
+        }   catch (error) {
+            await errorHandler(ctx, error)
+        }
+    },
+}
