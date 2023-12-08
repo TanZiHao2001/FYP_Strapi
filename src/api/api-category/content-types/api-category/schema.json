@@ -26,7 +26,8 @@
       "type": "text"
     },
     "short_description": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 150
     }
   }
 }
