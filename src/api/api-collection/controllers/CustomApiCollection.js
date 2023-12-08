@@ -244,6 +244,22 @@ module.exports = {
       await errorHandler(ctx, error)
     }
   },
+  createApiCollection: async (ctx) => {
+    try {
+      const {api_collection_name, short_description, api_category_id} = ctx.request.body;
+      const entry = await strapi.entityService.create("api::api-collection.api-collection", {
+        data: {
+          api_collection_name: api_collection_name,
+          short_description: short_description,
+          api_category_id: api_category_id,
+          publishedAt: Date.now()
+        }
+      })
+      ctx.send({message: `Api Collection ${entry.api_collection_name} created`})
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  }
 };
 
 

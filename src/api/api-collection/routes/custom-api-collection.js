@@ -28,5 +28,13 @@ module.exports = {
         auth: false
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/create-api-collection',
+      handler: CustomApiCollection.createApiCollection,
+      config: {
+        auth: false
+      }
+    }
   ]
 }
