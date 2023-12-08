@@ -24,10 +24,6 @@
     },
     "image_url": {
       "type": "text"
-    },
-    "short_description": {
-      "type": "text",
-      "maxLength": 150
     }
   }
 }
