@@ -59,6 +59,7 @@ module.exports = {
                     publishedAt: Date.now(),
                   },
             })
+            ctx.send({message: `Api Category ${entry.category_name} created`})
         }   catch (error) {
             await errorHandler(ctx, error)
         }
