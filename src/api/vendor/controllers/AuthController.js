@@ -419,7 +419,7 @@ module.exports = {
           emailSentTime: Date.now(),
         }
       });
-      await ctx.send({message: "Email sent"});
+      ctx.send({message: "Email sent"});
     } catch (error) {
       await errorHandler(ctx, error)
     }

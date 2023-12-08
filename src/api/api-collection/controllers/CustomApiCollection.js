@@ -205,14 +205,6 @@ module.exports = {
   getAllApiCollection: async (ctx) => {
     try {
 
-      // const count = await strapi.query("api::api-collection.api-collection").count({
-      //   where: {
-      //     id: {
-      //       $eq: 6
-      //     }
-      //   }
-      // })
-
       ctx.request.query = {
         fields: ['api_collection_name', 'createdAt'],
         publicationState: 'live',
