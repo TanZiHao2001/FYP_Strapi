@@ -21,6 +21,12 @@
       "relation": "oneToMany",
       "target": "api::api-collection.api-collection",
       "mappedBy": "api_category_id"
+    },
+    "image_url": {
+      "type": "text"
+    },
+    "short_description": {
+      "type": "text"
     }
   }
 }
