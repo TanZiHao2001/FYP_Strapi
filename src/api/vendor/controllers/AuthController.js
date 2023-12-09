@@ -14,7 +14,9 @@ const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
   auth: {
     user: "sendemail350@gmail.com",
+    // user: "zihao.010415@gmail.com",
     pass: "kjhigtncoovkicff", //update in .env
+    // pass: "vvjw xwyg lbei ytkx",
   },
 });
 //0 8 * * 1-5
@@ -358,6 +360,7 @@ module.exports = {
       const verifyToken = await signToken("verifyToken", result[0].id);
       const link =
         result[0].password == null
+          // ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
           ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
           : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
