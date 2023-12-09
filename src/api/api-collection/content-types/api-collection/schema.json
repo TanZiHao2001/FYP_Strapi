@@ -14,7 +14,8 @@
   "attributes": {
     "api_collection_name": {
       "type": "string",
-      "required": true
+      "required": true,
+      "unique": true
     },
     "description": {
       "type": "text"
