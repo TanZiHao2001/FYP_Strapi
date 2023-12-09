@@ -14,7 +14,8 @@
   "attributes": {
     "category_name": {
       "type": "string",
-      "required": true
+      "required": true,
+      "unique": true
     },
     "api_collections": {
       "type": "relation",
