@@ -246,10 +246,11 @@ module.exports = {
   },
   createApiCollection: async (ctx) => {
     try {
-      const {api_collection_name, short_description, api_category_id} = ctx.request.body;
+      const {api_collection_name, description, short_description, api_category_id} = ctx.request.body;
       const entry = await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection_name,
+          description: description,
           short_description: short_description,
           api_category_id: api_category_id,
           publishedAt: Date.now()
