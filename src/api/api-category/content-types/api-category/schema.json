@@ -15,7 +15,8 @@
     "category_name": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": true,
+      "maxLength": 20
     },
     "api_collections": {
       "type": "relation",
