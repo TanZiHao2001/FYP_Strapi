@@ -57,6 +57,22 @@ module.exports = {
       config: {
         auth: false,
       }
-    }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-new-user',
+      handler: CustomController.getNewUser,
+      config: {
+        auth: false
+      }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-non-active-user',
+      handler: CustomController.getNonActiveUser,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
