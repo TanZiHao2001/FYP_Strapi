@@ -175,6 +175,7 @@ module.exports = {
       await strapi.entityService.update("api::vendor.vendor", entry.id, {
         data: {
           refresh_token: refreshToken,
+          lastLoginTime: Date.now(),
         },
       });
       return ctx.send({message: "successfully logged in"});
