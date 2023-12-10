@@ -35,6 +35,14 @@ module.exports = {
       config: {
         auth: false
       }
+    },
+    {
+      method: 'DELETE',
+      path: '/custom/delete-api-collection/:id',
+      handler: CustomApiCollection.deleteApiCollection,
+      config: {
+        auth: false
+      }
     }
   ]
 }

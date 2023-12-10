@@ -50,5 +50,13 @@ module.exports = {
         auth: false
       }
     },
+    {
+      method: 'GET',
+      path: '/custom/get-all-user/:days?',
+      handler: CustomController.getTotalUser,
+      config: {
+        auth: false,
+      }
+    }
   ]
 }

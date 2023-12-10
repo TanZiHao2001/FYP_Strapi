@@ -19,6 +19,15 @@ module.exports = {
         config: {
             auth: false
         }
-    }
+    },
+    {
+        method: 'DELETE',
+        path: '/custom/delete-api-category/:id',
+        handler: CustomApiCategory.deleteApiCategory,
+        config: {
+            auth: false
+        }
+    },
+    
   ]
 }

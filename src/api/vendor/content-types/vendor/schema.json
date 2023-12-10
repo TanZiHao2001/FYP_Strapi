@@ -57,6 +57,9 @@
     },
     "activatedTime": {
       "type": "datetime"
+    },
+    "lastLoginTime": {
+      "type": "datetime"
     }
   }
 }

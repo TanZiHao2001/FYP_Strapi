@@ -258,9 +258,29 @@ module.exports = {
       })
       ctx.send({message: `Api Collection ${entry.api_collection_name} created`})
     } catch (error) {
-      await errorHandler(ctx, error)
+      await errorHandler(ctx, error);
     }
-  }
+  },
+  deleteApiCollection: async (ctx) => {
+    try {
+      const collectionID = ctx.params.id;
+      const findOneResult = await strapi.entityService.findOne("api::api-collection.api-collection", collectionID,{
+        fields: ['api_collection_name'],
+        populate: {
+          api_ids: {
+            fields: ['api_name']
+          }
+        }
+      });
+      if(findOneResult.api_ids.length > 0){
+        throw new Error('Please ensure no Api is in this collection');
+      }
+      const deleteEntry = await strapi.entityService.delete("api::api-collection.api-collection", collectionID)
+      ctx.send({message: `Api Category ${findOneResult.api_collection_name} is deleted`});
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  },
 };
 
 
