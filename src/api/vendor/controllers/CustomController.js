@@ -5,7 +5,7 @@ const {errorHandler} = require("../../error_helper");
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const bcrypt = require("bcryptjs");
-const AuthController = require('./AuthController')
+const AuthController = require('./AuthController');
 
 module.exports = {
   async updateProfile(ctx) {

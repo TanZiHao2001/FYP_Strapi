@@ -6,7 +6,7 @@ module.exports = {
   routes: [
     {
         method: 'GET',
-        path: '/custom/get-all-api-category',
+        path: '/custom/get-all-api-category/:char',
         handler: CustomApiCategory.getAllApiCategory,
         config: {
             auth: false

@@ -9,6 +9,7 @@ const { chromeuxreport } = require("googleapis/build/src/apis/chromeuxreport");
 module.exports = {
     getAllApiCategory: async (ctx) => {
         try {
+          const char = ctx.params.char
           ctx.request.query = {
             fields: ['category_name', 'image_url'],
             publicationState: 'live',
@@ -37,15 +38,25 @@ module.exports = {
           );
     
           const result = await contentAPI.output(entities, contentType);
+
+          const filteredResult = result.filter(item => {
+            return item.category_name.charAt(0).toLowerCase() === char.toLowerCase();
+          });
     
-          result.forEach(api_cat => {
+          filteredResult.forEach(api_cat => {
             api_cat.api_collections.forEach(api_coll => {
               api_coll.count = api_coll.api_ids.length;
               delete api_coll.api_ids;
             })
           });
+
+          const sortedResult = filteredResult.sort((a, b) => {
+            const nameA = a.category_name.toLowerCase();
+            const nameB = b.category_name.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
     
-          return result;
+          return sortedResult;
         } catch (error) {
           await errorHandler(ctx, error)
         }
