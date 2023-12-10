@@ -161,6 +161,50 @@ module.exports = {
     } catch (error) {
       await errorHandler(ctx, error);
     }
+  },
+  async getTotalUser (ctx) {
+    try {
+      const days = ctx.params?.days;
+      // get count of user list, if gt number of days, filter by current day - activated day < given day
+      const result = await strapi.entityService.findMany("api::vendor.vendor", {
+        filters: {
+          activatedTime: {
+            $null: false
+          }
+        }
+      })
+
+      if(!days || (days % 30 !== 0) || days > 90){
+        return result.length;
+      }
+
+      const timeNow = Date.now();
+      const filteredResult = result.filter((user) => {
+        return new Date(user.activatedTime).getTime() >= (timeNow - days * 24 * 60 * 60 * 1000)
+      })
+      return filteredResult.length;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  },
+  async getTotalLatestUser (ctx) {
+    try {
+      const result = await strapi.entityService.findMany("api::vendor.vendor", {
+        filters: {
+          activatedTime: {
+            $null: false
+          }
+        }
+      })
+
+      const timeNow = Date.now();
+      const filteredResult = result.filter((user) => {
+        return new Date(user.activatedTime).getTime() < (timeNow - 30 * 24 * 60 * 60 * 1000)
+      })
+      return filteredResult.length;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
   }
 };
 

@@ -4,6 +4,7 @@ const cookie = require("cookie");
 const { getVendorIdFromToken } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
+const { chromeuxreport } = require("googleapis/build/src/apis/chromeuxreport");
 
 module.exports = {
     getAllApiCategory: async (ctx) => {
@@ -51,17 +52,37 @@ module.exports = {
     },
     createApiCategory: async (ctx) => {
         try {
-            const {category_name, image_url} = ctx.request.body;
-            const entry = await strapi.entityService.create("api::api-category.api-category", {
-                data: {
-                    category_name: category_name,
-                    image_url: image_url,
-                    publishedAt: Date.now(),
-                  },
-            })
-            ctx.send({message: `Api Category ${entry.category_name} created`})
-        }   catch (error) {
-            await errorHandler(ctx, error)
+          const {category_name, image_url} = ctx.request.body;
+          const entry = await strapi.entityService.create("api::api-category.api-category", {
+            data: {
+              category_name: category_name,
+              image_url: image_url,
+              publishedAt: Date.now(),
+            },
+          })
+          ctx.send({message: `Api Category ${entry.category_name} created`})
+        } catch (error) {
+          await errorHandler(ctx, error)
         }
+    },
+    deleteApiCategory: async (ctx) => {
+      try {
+        const categoryID = ctx.params.id;
+        const findOneResult = await strapi.entityService.findOne("api::api-category.api-category", categoryID,{
+          fields: ['category_name'],
+          populate: {
+            api_collections: {
+              fields: ['api_collection_name']
+            }
+          }
+        });
+        if(findOneResult.api_collections.length > 0){
+          throw new Error('Please ensure no Api collection is in this category');
+        }
+        const deleteEntry = await strapi.entityService.delete("api::api-category.api-category", categoryID)
+        ctx.send({message: `Api Category ${findOneResult.category_name} is deleted`});
+      } catch (error) {
+        await errorHandler(ctx, error);
+      }
     },
 }
