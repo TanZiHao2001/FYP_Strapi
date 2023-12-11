@@ -220,6 +220,35 @@ module.exports = {
     } catch (error) {
       await errorHandler(ctx, error);
     }
+  },
+  async getOneUser (ctx) {
+    try {
+      const userID = ctx.params.id;
+      const user = await strapi.entityService.findOne("api::vendor.vendor", userID, {
+        fields: ['fullName', 'email', 'username', 'organisation', 'status', 'activatedTime', 'lastLoginTime'],
+        populate: {
+          projects: {
+            fields: ['project_name'],
+          },
+          access_controls: {
+            fields: ['status'],
+            filters: {
+              $status: {
+                $eq: 'Approved'
+              }
+            }
+          }
+        }
+      });
+
+      user.projectLength = user.projects.length;
+      delete user.projects;
+      user.numberAccessControl = user.access_controls.length;
+      delete user.access_controls;
+      return user
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
   }
 };
 

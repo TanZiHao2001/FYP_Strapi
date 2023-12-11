@@ -74,5 +74,13 @@ module.exports = {
         auth: false
       }
     },
+    { 
+      method: 'GET',
+      path: '/custom/get-one-user/:id',
+      handler: CustomController.getOneUser,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
