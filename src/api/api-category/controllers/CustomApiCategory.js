@@ -83,12 +83,39 @@ module.exports = {
           fields: ['category_name'],
           populate: {
             api_collections: {
-              fields: ['api_collection_name']
+              fields: ['api_collection_name'],
+              populate: {
+                access_controls: {
+                  fields: ["status"],
+                  filters: {
+                    status: {
+                      $eq: "Approved"
+                    }
+                  },
+                  populate: {
+                    vendor_id: {
+                      fields: ["username"]
+                    }
+                  }
+                }
+              }
             }
           }
         });
-        if(findOneResult.api_collections.length > 0){
-          return ctx.send({message: "Please ensure no Api collection is in this category"});
+        // if(findOneResult.api_collections.length > 0){
+        //   return ctx.send({message: "Please ensure no Api collection is in this category"});
+        // }
+
+        for(let i = 0; i < findOneResult.api_collections.length; i++){
+          if(findOneResult.api_collections[i].access_controls.length > 0){
+            let usernames = [];
+            findOneResult.api_collections[i].access_controls.forEach(access_control => {
+              usernames.push(access_control.vendor_id.username);
+            })
+            const errorMessage = `Vendor ${usernames.join(', ')} have access to Api Collection ${findOneResult.api_collections[i].api_collection_name}`;
+            console.log(errorMessage)
+            return ctx.send({message: errorMessage})
+          }
         }
         const deleteEntry = await strapi.entityService.delete("api::api-category.api-category", categoryID)
         ctx.send({message: `Api Category ${findOneResult.category_name} is deleted`});
