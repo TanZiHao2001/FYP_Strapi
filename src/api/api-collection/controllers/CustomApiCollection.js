@@ -273,10 +273,10 @@ module.exports = {
         }
       });
       if(findOneResult.api_ids.length > 0){
-        throw new Error('Please ensure no Api is in this collection');
+        return ctx.send({message: "Please ensure no Api is in this category"});
       }
       const deleteEntry = await strapi.entityService.delete("api::api-collection.api-collection", collectionID)
-      ctx.send({message: `Api Category ${findOneResult.api_collection_name} is deleted`});
+      ctx.send({message: `Api Collection ${findOneResult.api_collection_name} is deleted`});
     } catch (error) {
       await errorHandler(ctx, error);
     }
