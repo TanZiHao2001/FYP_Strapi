@@ -332,7 +332,73 @@ module.exports = {
     } catch (error) {
       await errorHandler(ctx, error)
     }
-  }
+  },
+  async setOneUserAccessControl (ctx) {
+    try {
+      const {vendor_id, access_controls} = ctx.request.body;
+      const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id,{
+        fields: ["email"],
+        populate: {
+          access_controls: {
+            fields: ["status"],
+            populate: {
+              api_collection_id: {
+                fields: ["api_collection_name"],
+                filters: {
+                  id: {
+                    $eq: access_controls[0].api_collection_id
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
+      access_controls.forEach( async (access_control) => {
+        // if(access_control.isActive === false) {
+          const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
+            fields: ["email"],
+            populate: {
+              access_controls: {
+                fields: ["status"],
+                populate: {
+                  api_collection_id: {
+                    fields: ["api_collection_name"],
+                    filters: {
+                      id: {
+                        $eq: access_control.api_collection_id
+                      }
+                    }
+                  }
+                },
+              }
+            }
+          });
+          const newInfo = userInfo.access_controls.filter(item => {
+            return item.api_collection_id !== null;
+          });
+          const newStatus = access_control.isActive === true ? "Approved" : "Rejected"; 
+          newInfo.length !== 0 ? 
+          await strapi.entityService.update("api::access-control.access-control", newInfo[0].id, {
+            data: {
+              status: newStatus
+            }
+          }) 
+          :
+          await strapi.entityService.create("api::access-control.access-control", {
+            data: {
+              status: newStatus,
+              vendor_id: vendor_id,
+              api_collection_id: access_control.api_collection_id,
+              publishedAt: Date.now(),
+            }
+          }) 
+      });
+      return ctx.send({message: "Access control edited"});
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
 };
 
 

@@ -90,5 +90,13 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/set-one-user-access-control',
+      handler: CustomController.setOneUserAccessControl,
+      config: {
+        auth: false
+      }
+    }
   ]
 }
