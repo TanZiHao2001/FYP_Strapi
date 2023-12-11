@@ -197,10 +197,24 @@ module.exports = {
         }
       });
       const timeNow = Date.now();
-      const filteredResult = result.filter((user) => {
+      const filteredResult30 = result.filter((user) => {
         return new Date(user.activatedTime).getTime() >= (timeNow - 30 * 24 * 60 * 60 * 1000)
       })
-      return filteredResult.length;
+      const filteredResultPrevious30 = result.filter((user) => {
+        return new Date(user.activatedTime).getTime() >= (timeNow - 60 * 24 * 60 * 60 * 1000) 
+        && new Date(user.activatedTime).getTime() <= (timeNow - 30* 24 * 60 * 60 * 1000);
+      })
+      const lengthPrevious30 = filteredResultPrevious30.length === 0 ? 1: filteredResultPrevious30.length;
+      const percentageCurrentMonthAndLastMonth = 
+      (filteredResult30.length / lengthPrevious30 * 100) % 1 === 0 ?
+      (filteredResult30.length / lengthPrevious30 * 100) :
+      (filteredResult30.length / lengthPrevious30 * 100).toFixed(2);
+
+      const finalResult = {
+        numberOfUser: filteredResult30.length,
+        percentage: percentageCurrentMonthAndLastMonth
+      }
+      return finalResult;
     } catch (error) {
       await errorHandler(ctx, error);
     }
@@ -215,7 +229,10 @@ module.exports = {
           }
         }
       })
-      const percentage = (result.length / allResult.length) * 100;
+      const percentage = 
+      ((result.length / allResult.length) * 100) % 1 === 0 ?
+      ((result.length / allResult.length) * 100) : 
+      ((result.length / allResult.length) * 100).toFixed(2);
       return percentage;
     } catch (error) {
       await errorHandler(ctx, error);
@@ -355,7 +372,6 @@ module.exports = {
         }
       })
       access_controls.forEach( async (access_control) => {
-        // if(access_control.isActive === false) {
           const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
             fields: ["email"],
             populate: {
