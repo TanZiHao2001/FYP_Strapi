@@ -352,46 +352,44 @@ module.exports = {
   },
   async setOneUserAccessControl (ctx) {
     try {
-      const {vendor_id, access_controls} = ctx.request.body;
-      access_controls.forEach( async (access_control) => {
-          const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
-            fields: ["email"],
+      const {vendor_id, give, revoke} = ctx.request.body;
+      const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
+        fields: ["email"],
+        populate: {
+          access_controls: {
+            fields: ["status"],
             populate: {
-              access_controls: {
-                fields: ["status"],
-                populate: {
-                  api_collection_id: {
-                    fields: ["api_collection_name"],
-                    filters: {
-                      id: {
-                        $eq: access_control.api_collection_id
-                      }
-                    }
-                  }
-                },
+              api_collection_id: {
+                fields: ["id"],
               }
-            }
-          });
-          const newInfo = userInfo.access_controls.filter(item => {
-            return item.api_collection_id !== null;
-          });
-          const newStatus = access_control.isActive === true ? "Approved" : "Rejected"; 
-          newInfo.length !== 0 ? 
-          await strapi.entityService.update("api::access-control.access-control", newInfo[0].id, {
-            data: {
-              status: newStatus
-            }
-          }) 
-          :
-          await strapi.entityService.create("api::access-control.access-control", {
-            data: {
-              status: newStatus,
-              vendor_id: vendor_id,
-              api_collection_id: access_control.api_collection_id,
-              publishedAt: Date.now(),
-            }
-          }) 
+            },
+          }
+        }
       });
+
+      //prepare access control id for delete
+      const revokeSet = new Set(revoke);
+      const filteredArray = userInfo.access_controls.filter(obj => revokeSet.has(obj.api_collection_id.id));
+      const removeIds = filteredArray.map(obj => obj.id);
+      
+      //prepare api collection id for create
+      const processedIds = new Set();
+      const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
+      console.log(createIds);
+
+      removeIds.forEach(async (id)=>{
+        await strapi.entityService.delete("api::access-control.access-control", id)
+      })
+
+      createIds.forEach(async (id)=>{
+        await strapi.entityService.create("api::access-control.access-control", {
+          data: {
+            vendor_id: vendor_id,
+            api_collection_id: id,
+            publishedAt: Date.now(),
+          }
+        }) 
+      })
       return ctx.send({message: "Access control edited"});
     } catch (error) {
       await errorHandler(ctx, error)
