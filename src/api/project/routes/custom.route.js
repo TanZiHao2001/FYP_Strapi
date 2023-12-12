@@ -43,6 +43,14 @@ module.exports = {
       }
     },
     {
+      method: 'POST',
+      path: '/custom/request-project-token',
+      handler: CustomController.requestProjectToken,
+      config: {
+        auth: false,
+      }
+    },
+    {
       method: 'GET',
       path: '/custom/get-all-project-tokens/:id',
       handler: CustomController.getAllProjectTokens,
