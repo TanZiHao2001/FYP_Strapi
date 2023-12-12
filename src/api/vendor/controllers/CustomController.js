@@ -353,24 +353,6 @@ module.exports = {
   async setOneUserAccessControl (ctx) {
     try {
       const {vendor_id, access_controls} = ctx.request.body;
-      const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id,{
-        fields: ["email"],
-        populate: {
-          access_controls: {
-            fields: ["status"],
-            populate: {
-              api_collection_id: {
-                fields: ["api_collection_name"],
-                filters: {
-                  id: {
-                    $eq: access_controls[0].api_collection_id
-                  }
-                }
-              }
-            }
-          }
-        }
-      })
       access_controls.forEach( async (access_control) => {
           const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
             fields: ["email"],
