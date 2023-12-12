@@ -58,5 +58,21 @@ module.exports = {
         auth: false,
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/block-user-project',
+      handler: CustomController.blockUserProjectTable,
+      config: {
+        auth: false,
+      }
+    },
+    {
+      method: 'POST',
+      path: '/custom/unblock-user-project',
+      handler: CustomController.unblockUserProjectTable,
+      config: {
+        auth: false,
+      }
+    }
   ]
 }

@@ -295,7 +295,9 @@ module.exports = {
         throw createError.Forbidden();
       }
 
-      const request_token = await strapi.entityService.create("api::")
+      const request_token = await strapi.entityService.create("api::token.token", {
+
+      })
     } catch (error) {
       await errorHandler(ctx, error);
     }
@@ -367,14 +369,45 @@ module.exports = {
   },
   async blockUserProjectTable(ctx) {
     try {
-      const project_id = ctx.request.body;
+      const {project_id} = ctx.request.body;
+      const project_data = await strapi.entityService.findOne("api::project.project", project_id, {
+        fields: ["project_name"]
+      })
+
+      if(Object.keys(project_data).length === 0) {
+        ctx.send({error: "No project found"});
+      }
+
       const result = await strapi.entityService.update("api::project.project", project_id, {
         data: {
-          status: ""
+          status: "Rejected"
         }
-      })
+      });
+      ctx.send({message: `Project ${project_data.project_name} has been blocked, vendor cannot request token`});
     } catch (error) {
       await errorHandler(ctx, error)
     }
-  }
+  },
+  async unblockUserProjectTable(ctx) {
+    try {
+      const {project_id} = ctx.request.body;
+      const project_data = await strapi.entityService.findOne("api::project.project", project_id, {
+        fields: ["project_name"]
+      })
+
+      if(Object.keys(project_data).length === 0) {
+        ctx.send({error: "No project found"});
+      }
+
+      const result = await strapi.entityService.update("api::project.project", project_id, {
+        data: {
+          status: "Approved"
+        }
+      });
+      ctx.send({message: `Project ${project_data.project_name} has been unblocked`});
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
 };
+
