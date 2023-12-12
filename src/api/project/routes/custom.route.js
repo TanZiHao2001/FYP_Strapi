@@ -49,6 +49,14 @@ module.exports = {
       config: {
         auth: false,
       }
-    }
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-user-project-table/:id',
+      handler: CustomController.getUserProjectTable,
+      config: {
+        auth: false,
+      }
+    },
   ]
 }

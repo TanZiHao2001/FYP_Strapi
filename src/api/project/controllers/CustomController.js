@@ -270,6 +270,36 @@ module.exports = {
       await errorHandler(ctx, error)
     }
   },
+  async requestProjectToken(ctx) {
+    try {
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies?.accessToken;
+      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const projectId = ctx.params.id;
+
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+        filters: {
+          id: projectId,
+          status: "Approved",
+          vendor: {
+            id: vendorId,
+          },
+        },
+      });
+
+      if (db_vendorId.length === 0) {
+        throw createError.Forbidden();
+      }
+
+      const request_token = await strapi.entityService.create("api::")
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  },
   async getAllProjectTokens(ctx){
     try{
       const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
@@ -314,6 +344,36 @@ module.exports = {
 
       return token_history.tokens;
     } catch(error){
+      await errorHandler(ctx, error)
+    }
+  },
+  async getUserProjectTable(ctx) {
+    try {
+      const vendorId = ctx.params.id;
+      const result = await strapi.entityService.findMany("api::project.project", {
+        fields: ["project_name", "description", "status", "createdAt"],
+        filters: {
+          vendor: {
+            id: {
+              $eq: vendorId
+            }
+          }
+        }
+      });
+      return result;
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
+  async blockUserProjectTable(ctx) {
+    try {
+      const project_id = ctx.request.body;
+      const result = await strapi.entityService.update("api::project.project", project_id, {
+        data: {
+          status: ""
+        }
+      })
+    } catch (error) {
       await errorHandler(ctx, error)
     }
   }
