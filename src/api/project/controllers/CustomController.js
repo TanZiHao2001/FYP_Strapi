@@ -58,19 +58,22 @@ module.exports = {
         },
       });
 
-      const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
-      const currentDate = new Date();
-      const createdDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
+      // const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
+      // const currentDate = new Date();
+      // const createdDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
       const oneDayInMS = 24 * 60 * 60 * 1000;
-      const expiredDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000 + oneDayInMS);
-      const createdDateFormatted = createdDate.toISOString();
-      const expiredDateFormatted = expiredDate.toISOString();
+      // const expiredDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000 + oneDayInMS);
+      // const createdDateFormatted = createdDate.toISOString();
+      // const expiredDateFormatted = expiredDate.toISOString();
+
+      const createdDateFormatted = getTimeNowInMiliInMalaysiaTime().getTime();
+      const expiredDateFormatted = getTimeNowInMiliInMalaysiaTime().getTime() + oneDayInMS;
       const dummy_token = await signToken('refreshToken', project_entry.id)
       const token_entry = await strapi.entityService.create('api::token.token', {
         data: {
           project_id: project_entry.id,
-          created_date: createdDateFormatted,
-          expiration_date: expiredDateFormatted,
+          created_date: Date.now(),
+          expiration_date: Date.now() + oneDayInMS,
           token: dummy_token,
           publishedAt: Date.now(),
         }
@@ -279,11 +282,11 @@ module.exports = {
         throw createError.Unauthorized();
       }
 
-      const projectId = ctx.params.id;
+      const {project_id} = ctx.request.body;
 
       const db_vendorId = await strapi.entityService.findMany('api::project.project', {
         filters: {
-          id: projectId,
+          id: project_id,
           status: "Approved",
           vendor: {
             id: vendorId,
@@ -295,9 +298,18 @@ module.exports = {
         throw createError.Forbidden();
       }
 
+      const oneDayInMS = 24 * 60 * 60 * 1000
+      const project_token = await signToken('verifyToken', project_id); //temporary
       const request_token = await strapi.entityService.create("api::token.token", {
-
+        data: {
+          project_id: project_id,
+          created_date: Date.now(),
+          expiration_date: Date.now() + oneDayInMS,
+          token: project_token,  
+          publishedAt: Date.now()
+        }
       })
+      ctx.send({"message": "Token created"})
     } catch (error) {
       await errorHandler(ctx, error);
     }
@@ -411,3 +423,9 @@ module.exports = {
   },
 };
 
+function getTimeNowInMiliInMalaysiaTime() {
+  const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
+  const currentDate = new Date();
+  const currentTimeInMili = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
+  return currentTimeInMili;
+}

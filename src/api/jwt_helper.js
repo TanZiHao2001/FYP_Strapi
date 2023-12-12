@@ -39,15 +39,22 @@ module.exports = {
         if (err) {
           if (err.name === 'JsonWebTokenError') {
             resolve()
+            return;
           } else {
             resolve()
+            return;
           }
+        }
+        if(typeof payload === "undefined") {
+          resolve(null);
+          return;
         }
         const status = await strapi.entityService.findOne("api::vendor.vendor", payload.aud, {
           fields: ["status"],
         })
         if(status.status === 'Pending' || status.status === 'Rejected'){
           resolve(null);
+          return;
         }
         resolve(payload.aud);
       })
