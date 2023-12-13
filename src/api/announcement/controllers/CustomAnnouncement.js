@@ -58,10 +58,14 @@ module.exports = {
     },
     getAnnouncementEventList: async (ctx) => {
         try{
+            // const {year, month} = ctx.request.body
+            const announcement = await strapi.entityService.findMany("api::announcement.announcement", {
+                fields: ["title", "startDate", "endDate"]
+            })
             const currentMonthCalendar = getCurrentMonthCalendar(2023, 12);
             const result = create3DArray(currentMonthCalendar);
-            // console.log(result);
-            return result;
+            // return result;
+            return announcement;
         } catch (error) {
             await errorHandler(ctx, error);
         }
@@ -107,20 +111,20 @@ module.exports = {
         }
     }
 
-    array[1][0].push({clickResponse: 'Event A', title: 'Event A', isStart: true, color: 'bg-sky-400', level: 0});
-    array[1][0].push({clickResponse: 'Event B', title: 'Event B', isStart: true, isEnd: true, level: 1, color: 'bg-amber-400'});
+    // array[1][0].push({clickResponse: 'Event A', title: 'Event A', isStart: true, color: 'bg-sky-400', level: 0});
+    // array[1][0].push({clickResponse: 'Event B', title: 'Event B', isStart: true, isEnd: true, level: 1, color: 'bg-amber-400'});
     
-    array[1][1].push({clickResponse: 'Event A', isEnd: true, color: 'bg-sky-400', level: 0})
-    array[1][1].push({clickResponse: 'Event C', title: 'Event C', isStart: true, color: 'bg-green-400', level: 1})
+    // array[1][1].push({clickResponse: 'Event A', isEnd: true, color: 'bg-sky-400', level: 0})
+    // array[1][1].push({clickResponse: 'Event C', title: 'Event C', isStart: true, color: 'bg-green-400', level: 1})
 
-    array[1][2].push({clickResponse: 'Event D', title: 'Event D', isStart: true, isEnd: true, color: 'bg-yellow-400', level: 0});
-    array[1][2].push({clickResponse: 'Event C', isEnd: true, color: 'bg-green-400', level: 1});
-    array[1][2].push({clickResponse: 'Event E', title: 'Event E', isStart: true, color: 'bg-rose-400', level: 2});
+    // array[1][2].push({clickResponse: 'Event D', title: 'Event D', isStart: true, isEnd: true, color: 'bg-yellow-400', level: 0});
+    // array[1][2].push({clickResponse: 'Event C', isEnd: true, color: 'bg-green-400', level: 1});
+    // array[1][2].push({clickResponse: 'Event E', title: 'Event E', isStart: true, color: 'bg-rose-400', level: 2});
 
-    array[1][3].push({clickResponse: 'Event E', isEnd: true, color: 'bg-rose-400', level: 2});
-    array[1][6].push({clickResponse: 'Event F', title: 'Event F', isStart: true, isEnd: true, color: 'bg-emerald-400', level: 0});
+    // array[1][3].push({clickResponse: 'Event E', isEnd: true, color: 'bg-rose-400', level: 2});
+    // array[1][6].push({clickResponse: 'Event F', title: 'Event F', isStart: true, isEnd: true, color: 'bg-emerald-400', level: 0});
 
-    array[2][0].push({clickResponse: 'Event F', title: 'Event F', isStart: true, isEnd: true, color: 'bg-emerald-400', level: 0});
+    // array[2][0].push({clickResponse: 'Event F', title: 'Event F', isStart: true, isEnd: true, color: 'bg-emerald-400', level: 0});
     return array;
   }
   function groupByDate(arr){
