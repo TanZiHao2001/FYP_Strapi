@@ -19,7 +19,14 @@ module.exports = {
       config: {
         auth: false,
       }
-
+    },
+    {
+      method: 'GET',
+      path: '/custom/get-announcement-event-list',
+      handler: CustomAnnouncement.getAnnouncementEventList,
+      config: {
+        auth: false
+      }
     }
   ]
 }
