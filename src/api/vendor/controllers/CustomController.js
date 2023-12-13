@@ -152,11 +152,8 @@ module.exports = {
       });
       if(update.emailSentTime === null){
         ctx.request.body = { email: update.email };
-        console.log(ctx.request.body)
         await AuthController.sendEmail(ctx);
-        console.log('here')
       }
-      console.log('skipped')
       ctx.send({message: "Vendor has been unblocked"});
     } catch (error) {
       await errorHandler(ctx, error);
