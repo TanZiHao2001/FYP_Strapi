@@ -152,7 +152,7 @@ module.exports = {
         where: {email: email},
       });
 
-      if(entry.publishedAt === null || entry.status === 'Rejected'){
+      if(entry.publishedAt === null || entry.status === 'Rejected' || entry.status === "Pending"){
         return ctx.send({error: "Account has been blocked, please contact admin"});
       }
 
