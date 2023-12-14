@@ -25,10 +25,10 @@
       "required": true
     },
     "startDate": {
-      "type": "datetime"
+      "type": "date"
     },
     "endDate": {
-      "type": "datetime"
+      "type": "date"
     },
     "description": {
       "type": "text"
