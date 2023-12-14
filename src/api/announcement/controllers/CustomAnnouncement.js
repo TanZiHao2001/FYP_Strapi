@@ -61,11 +61,20 @@ module.exports = {
             // const {year, month} = ctx.request.body
             const announcement = await strapi.entityService.findMany("api::announcement.announcement", {
                 fields: ["title", "startDate", "endDate"]
-            })
+            });
+            
             const currentMonthCalendar = getCurrentMonthCalendar(2023, 12);
             const result = create3DArray(currentMonthCalendar);
-            // return result;
+            console.log(currentMonthCalendar)
+            let currMonthDate = []
+            for(let i = 0; i < currentMonthCalendar.length; i++) {
+                for(let j = 0; j < currentMonthCalendar[i].length; j++) {
+                    currMonthDate.push(currentMonthCalendar[i][j].date.getDate())
+                }
+            }
+            console.log(currMonthDate)
             return announcement;
+            // return result;
         } catch (error) {
             await errorHandler(ctx, error);
         }
