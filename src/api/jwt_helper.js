@@ -4,10 +4,11 @@ const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 
 module.exports = {
-  signToken: (type, userId) => {
+  signToken: (type, userId, role) => {
     return new Promise((resolve, reject) => {
       const payload = {
         aud: userId,
+        role: role,
         iss: 'angular.com'
       }
       const secrets = {
@@ -47,6 +48,10 @@ module.exports = {
         }
         if(typeof payload === "undefined") {
           resolve(null);
+          return;
+        }
+        if(payload.role === "ROLE_ADMIN") {
+          resolve(payload.role);
           return;
         }
         const status = await strapi.entityService.findOne("api::vendor.vendor", payload.aud, {

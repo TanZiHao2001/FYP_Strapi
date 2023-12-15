@@ -145,19 +145,29 @@ module.exports = {
       if (!email || !password || !validateEmail(email)) {
         throw createError.BadRequest();
       }
-
+      const emailList = JSON.parse(process.env.ADMIN_EMAIL);
+      const passwordList = JSON.parse(process.env.ADMIN_PASSWORD);
+      for(let i = 0; i < emailList.length; i++) {
+        if(email === emailList[i] && password === passwordList[i]) {
+          const accessToken = await signToken("accessToken", 0, "ROLE_ADMIN");
+          const refreshToken = await signToken("refreshToken", 0, "ROLE_ADMIN");
+          setToken(ctx, "accessToken", accessToken);
+          setToken(ctx, "refreshToken", refreshToken);
+          return ctx.send({message: "successfully logged in"});
+        }
+      }
       const contentType = strapi.contentType("api::vendor.vendor");
 
       const entry = await strapi.db.query(contentType.uid).findOne({
         where: {email: email},
       });
 
-      if(entry.publishedAt === null || entry.status === 'Rejected' || entry.status === "Pending"){
-        return ctx.send({error: "Account has been blocked, please contact admin"});
-      }
-
       if (!entry || entry.password === null) {
         return ctx.send({error: "Invalid email / password"});
+      }
+
+      if(entry.publishedAt === null || entry.status === 'Rejected' || entry.status === "Pending"){
+        return ctx.send({error: "Account has been blocked, please contact admin"});
       }
 
       const isPasswordValid = await bcrypt.compare(password, entry.password);
@@ -166,7 +176,7 @@ module.exports = {
         return ctx.send({error: "Invalid email / password"});
       }
 
-      const accessToken = await signToken("accessToken", entry.id);
+      const accessToken = await signToken("accessToken", entry.id, "ROLE_VENDOR");
       const refreshToken = await signToken("refreshToken", entry.id);
 
       setToken(ctx, "accessToken", accessToken);
@@ -325,10 +335,14 @@ module.exports = {
 
       if (!accessToken) {
         throw new Error();
-      } else {
-        const vendorId = await getVendorIdFromToken("accessToken", accessToken);
-        vendorId ? ctx.send(true) : ctx.send(false);
       }
+
+      const token_result = await getVendorIdFromToken("accessToken", accessToken);
+      const role = token_result === "ROLE_ADMIN" ? token_result : "ROLE_VENDOR";
+      const isAuthenticated = token_result ? true : false;
+
+      return {role: role, isAuthenticated: isAuthenticated};
+
     } catch (error) {
       if (error.message) {
         ctx.response.status = error.status || 500;
