@@ -340,7 +340,7 @@ module.exports = {
       const token_result = await getVendorIdFromToken("accessToken", accessToken);
       const role = token_result === "ROLE_ADMIN" ? token_result : "ROLE_VENDOR";
       const isAuthenticated = token_result ? true : false;
-
+      
       return {role: role, isAuthenticated: isAuthenticated};
 
     } catch (error) {
@@ -348,7 +348,7 @@ module.exports = {
         ctx.response.status = error.status || 500;
         ctx.response.body = {error: error.message};
       } else {
-        ctx.send(false);
+        ctx.send({role: "GUEST", isAuthenticated: false});
       }
     }
   },
