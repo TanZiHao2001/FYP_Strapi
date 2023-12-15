@@ -48,7 +48,7 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
         sanitizedQueryParams
       );
       const result = await contentAPI.output(entities, contentType);
-      
+      console.log(entities)
       if(result.length > 0){
         result.forEach((item) => {
           if (item.tokens.length > 1) {
