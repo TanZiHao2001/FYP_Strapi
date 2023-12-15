@@ -383,6 +383,7 @@ module.exports = {
           data: {
             vendor_id: vendor_id,
             api_collection_id: id,
+            status: 'Approved',
             publishedAt: Date.now(),
           }
         }) 
