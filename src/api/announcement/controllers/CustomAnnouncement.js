@@ -142,7 +142,6 @@ module.exports = {
                                 let diffDay = Math.ceil((new Date(filteredAnnouncement[j].endDate) - new Date(filteredAnnouncement[j].startDate))
                                                 / (24 * 60 * 60 * 1000));
                                 // columnIndex = (++columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
-                                // ++columnIndex;
                                 ++columnIndex;
                                 if(columnIndex > 6 && diffDay > 1){
                                     result[rowIndex][--columnIndex][i].isEnd = true;
@@ -177,8 +176,7 @@ module.exports = {
                                             level: i
                                         }
                                     );
-
-
+                                    
                                     ++columnIndex;
                                     if(columnIndex > 6 && diffDay > 1){
                                         result[rowIndex][--columnIndex][i].isEnd = true;
@@ -226,7 +224,48 @@ module.exports = {
         } catch (error) {
             await errorHandler(ctx, error);
         }
-    }
+    },
+    createAnnouncement: async (ctx) => {
+        try {
+            const {title, description, announcement_text, startDate, endDate, color} = ctx.request.body;
+            const findExist = await strapi.entityService.findMany("api::announcement.announcement", {
+                filters: {
+                    title: {
+                        $eq: title
+                    }
+                }
+            });
+            if(findExist.length > 0){
+                const updateEntry = await strapi.entityService.update("api::announcement.announcement", findExist[0].id, {
+                    data: {
+                        title: title,
+                        description: description,
+                        announcement_text: announcement_text,
+                        startDate: startDate,
+                        endDate: endDate,
+                        color: color,
+                    }
+                });
+                return ctx.send({message: `Announcement ${updateEntry.title} has been updated`});
+            }
+            const entry = await strapi.entityService.create("api::announcement.announcement", {
+                data: {
+                    title: title,
+                    description: description,
+                    announcement_text: announcement_text,
+                    startDate: startDate,
+                    endDate: endDate,
+                    color: color,
+                    publishedAt: Date.now()
+                }
+            });
+            return ctx.send({message: `Announcement ${entry.title} has been created`});
+        } catch (error) {
+            errorHandler(ctx, error);
+        }
+        
+    },
+    
   };
 
   function getCurrentMonthCalendar(year, month) {

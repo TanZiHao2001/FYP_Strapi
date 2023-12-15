@@ -55,5 +55,17 @@ module.exports = createCoreController(
         await errorHandler(ctx, error);
       }
     },
+    async findOne(ctx) {
+      try {
+        const id = ctx.params.id
+        const result = await strapi.entityService.findOne("api::announcement.announcement", id, {
+          fields: ["title", "description", "announcement_text", "startDate", "endDate", "color"],
+          publicationState: "live"
+        })
+        return result;
+      } catch (error) {
+        await errorHandler(ctx, error);
+      }
+    }
   })
 );

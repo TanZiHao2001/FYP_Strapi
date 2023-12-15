@@ -27,6 +27,14 @@ module.exports = {
       config: {
         auth: false
       }
-    }
+    },
+    {
+      method: 'POST',
+      path: '/custom/create-announcement',
+      handler: CustomAnnouncement.createAnnouncement,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
