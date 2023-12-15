@@ -145,8 +145,13 @@ module.exports = {
       if (!email || !password || !validateEmail(email)) {
         throw createError.BadRequest();
       }
-      const emailList = JSON.parse(process.env.ADMIN_EMAIL);
-      const passwordList = JSON.parse(process.env.ADMIN_PASSWORD);
+
+      let emailList, passwordList;
+      if(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD){
+        emailList = JSON.parse(process.env.ADMIN_EMAIL);
+        passwordList = JSON.parse(process.env.ADMIN_PASSWORD);
+      }
+      
       for(let i = 0; i < emailList.length; i++) {
         if(email === emailList[i] && password === passwordList[i]) {
           const accessToken = await signToken("accessToken", 0, "ROLE_ADMIN");
