@@ -61,7 +61,7 @@ module.exports = {
         try{
             // const {year, month} = ctx.request.body
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
-                fields: ["title", "startDate", "endDate"]
+                fields: ["title", "startDate", "endDate", "color"]
             });
             
             const currentMonthCalendar = getCurrentMonthCalendar(2023, 12);
@@ -115,7 +115,7 @@ module.exports = {
                                         title: filteredAnnouncement[j].title,
                                         isStart: true,
                                         isEnd: true,
-                                        color: 'bg-green-400',
+                                        color: filteredAnnouncement[j].color,
                                         level: i
                                     }
                                 );
@@ -134,7 +134,7 @@ module.exports = {
                                         title: filteredAnnouncement[j].title,
                                         isStart: true,
                                         isEnd: false,
-                                        color: 'bg-green-400',
+                                        color: filteredAnnouncement[j].color,
                                         level: i
                                     }
                                 );
@@ -152,7 +152,7 @@ module.exports = {
                                             title: filteredAnnouncement[j].title,
                                             isStart: true,
                                             isEnd: false,
-                                            color: 'bg-green-400',
+                                            color: filteredAnnouncement[j].color,
                                             level: i
                                         }
                                     );
@@ -172,7 +172,7 @@ module.exports = {
                                             clickResponse: filteredAnnouncement[j].id,
                                             isStart: false,
                                             isEnd: false,
-                                            color: 'bg-green-400',
+                                            color: filteredAnnouncement[j].color,
                                             level: i
                                         }
                                     );
@@ -187,7 +187,7 @@ module.exports = {
                                                 title: filteredAnnouncement[j].title,
                                                 isStart: true,
                                                 isEnd: false,
-                                                color: 'bg-green-400',
+                                                color: filteredAnnouncement[j].color,
                                                 level: i
                                             }
                                         );
@@ -209,7 +209,7 @@ module.exports = {
                                         clickResponse: filteredAnnouncement[j].id,
                                         isStart: false,
                                         isEnd: true,
-                                        color: 'bg-green-400',
+                                        color: filteredAnnouncement[j].color,
                                         level: i
                                     }
                                 );
