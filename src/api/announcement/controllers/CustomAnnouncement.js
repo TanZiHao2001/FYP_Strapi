@@ -228,14 +228,18 @@ module.exports = {
     createAnnouncement: async (ctx) => {
         try {
             const {title, description, announcement_text, startDate, endDate, color} = ctx.request.body;
-            const findExist = await strapi.entityService.findMany("api::announcement.announcement", {
-                filters: {
-                    title: {
-                        $eq: title
+            let id;
+            if(ctx.request.body.id) {
+                id = ctx.request.body.id; 
+            }
+            if(id) { 
+                const findExist = await strapi.entityService.findMany("api::announcement.announcement", {
+                    filters: {
+                        id: {
+                            $eq: id
+                        }
                     }
-                }
-            });
-            if(findExist.length > 0){
+                });
                 const updateEntry = await strapi.entityService.update("api::announcement.announcement", findExist[0].id, {
                     data: {
                         title: title,
