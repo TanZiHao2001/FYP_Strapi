@@ -1,3 +1,4 @@
+// @ts-nocheck
 const cookie = require("cookie");
 const {getVendorIdFromToken, signToken} = require("../../jwt_helper");
 const createError = require("http-errors");
@@ -231,6 +232,39 @@ module.exports = {
       ((result.length / allResult.length) * 100) : 
       ((result.length / allResult.length) * 100).toFixed(2);
       return percentage;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  },
+  async getActiveNonActiveNewUserData (ctx) {
+    /* this method cannot handle the following case:
+        1. if the vendor has activated for more than 1 month, but has never login to portal
+    */
+    try {
+      const allUser = await strapi.entityService.findMany("api::vendor.vendor");
+      const timeNow = new Date();
+      const newUser = allUser.filter((user) => {
+        return new Date(user.activatedTime).getTime() >= (timeNow - 30 * 24 * 60 * 60 * 1000)
+      });
+      const activeUser = allUser.filter((user) => {
+        return new Date(user.lastLoginTime).getTime() >= (timeNow - 90 * 24 * 60 * 60 * 1000)
+        && new Date(user.activatedTime).getTime() < (timeNow - 30 * 24 * 60 * 60 * 1000)
+      });
+      const nonActiveUser = allUser.filter((user) => {
+        return new Date(user.lastLoginTime).getTime() < (timeNow - 90 * 24 * 60 * 60 * 1000)
+        && user.lastLoginTime !== null
+        && user.activatedTime !== null
+      });
+      const nonActivatedUser = allUser.filter((user) => {
+        return user.activatedTime === null;
+      });
+      const result = {
+        newUserPercentage: (newUser.length / allUser.length) * 100,
+        activeUserPercentage: (activeUser.length / allUser.length) * 100,
+        nonActiveUserPercentage: (nonActiveUser.length / allUser.length) * 100,
+        nonActivatedUserPercentage: (nonActivatedUser.length / allUser.length) * 100
+      };
+      return result;
     } catch (error) {
       await errorHandler(ctx, error);
     }
