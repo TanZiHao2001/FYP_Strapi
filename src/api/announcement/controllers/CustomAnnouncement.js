@@ -72,19 +72,15 @@ module.exports = {
                     currMonthDate.push(currentMonthCalendar[i][j].date)
                 }
             }
-            // console.log(currMonthDate)
-            // console.log(result)
             announcement.sort((a, b) => {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
             })
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
             let filteredAnnouncement = announcement.filter(item => item !== null);
-            // console.log(filteredAnnouncement)
             const formattedDates = currentMonthCalendar.map(innerArray =>
                 innerArray.map(obj => (new Date(obj.date).toDateString()))
               );
-
             for(let i = 0; i < 3; i++) { // level 0, 1, 2
                 for(let j = 0; j < filteredAnnouncement.length; j++) { // index for announcement
                     const startYear = new Date(filteredAnnouncement[j].startDate).getFullYear();
@@ -95,9 +91,11 @@ module.exports = {
                     const endDate = new Date(filteredAnnouncement[j].endDate).getDate();
                     loop3: for(let k = 0; k < currMonthDate.length; k++) { // index for currMonthDate
                         // 2023 12 2 vs 2023 12 3
+                        // check if the startDate for current announcement is already earlier than the current checking date
                         if( (startMonth < new Date(currMonthDate[k]).getMonth()) || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
                             break loop3;
                         };
+                        // check if startDate for current announcement matches the current checking date  
                         if(startYear === new Date(currMonthDate[k]).getFullYear() && startMonth === new Date(currMonthDate[k]).getMonth() && startDate === new Date(currMonthDate[k]).getDate()) {
                             let rowIndex = formattedDates.findIndex(
                                 innerArray => innerArray.includes(new Date(startYear, startMonth, startDate, 8).toDateString()));
@@ -107,9 +105,10 @@ module.exports = {
                             for(let x = 0; x < tempResult.length; x++) {
                                 tempLevel[x] = true;
                             }
+                            //check if startDate and endDate of the current announcement is same
                             if(startYear === endYear && startMonth === endMonth && startDate === endDate){
                                 if(tempLevel[i]) break loop3;
-                                result[rowIndex][columnIndex].push(
+                                result[rowIndex][columnIndex++].push(
                                     {
                                         clickResponse: filteredAnnouncement[j].id,
                                         title: filteredAnnouncement[j].title,
@@ -121,14 +120,16 @@ module.exports = {
                                 );
                                 filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                 j--;
-                                columnIndex = (++columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
+                                columnIndex = (columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
                                 if(rowIndex > 5) {
                                     break loop3;
                                 }
                             } 
+                            //startDate and endDate of current announcement are not same, means more than 1 day
                             else {
                                 if(tempLevel[i]) break loop3;
-                                result[rowIndex][columnIndex].push(
+                                //push first day, isStart = true, isEnd = false
+                                result[rowIndex][columnIndex++].push(
                                     {
                                         clickResponse: filteredAnnouncement[j].id,
                                         title: filteredAnnouncement[j].title,
@@ -139,12 +140,13 @@ module.exports = {
                                     }
                                 );
                                 // @ts-ignore
+                                //calculate the number of days
                                 let diffDay = Math.ceil((new Date(filteredAnnouncement[j].endDate) - new Date(filteredAnnouncement[j].startDate))
                                                 / (24 * 60 * 60 * 1000));
-                                // columnIndex = (++columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
-                                ++columnIndex;
+                                //check if columnIndex out of bounds (already reach end of week) and 
+                                //check if haven't reach endDate of annoucement
                                 if(columnIndex > 6 && diffDay > 1){
-                                    result[rowIndex][--columnIndex][i].isEnd = true;
+                                    result[rowIndex][--columnIndex][result[rowIndex][columnIndex].length - 1].isEnd = true;
                                     columnIndex = 0;
                                     result[++rowIndex][columnIndex++].push(
                                         {
@@ -167,7 +169,7 @@ module.exports = {
                                     break loop3;
                                 }
                                 while(diffDay > 1) {
-                                    result[rowIndex][columnIndex].push(
+                                    result[rowIndex][columnIndex++].push(
                                         {
                                             clickResponse: filteredAnnouncement[j].id,
                                             isStart: false,
@@ -177,9 +179,8 @@ module.exports = {
                                         }
                                     );
                                     
-                                    ++columnIndex;
                                     if(columnIndex > 6 && diffDay > 1){
-                                        result[rowIndex][--columnIndex][i].isEnd = true;
+                                        result[rowIndex][--columnIndex][result[rowIndex][columnIndex].length - 1].isEnd = true;
                                         columnIndex = 0;
                                         result[++rowIndex][columnIndex++].push(
                                             {
@@ -198,13 +199,12 @@ module.exports = {
                                         columnIndex = 0;
                                     }
 
-                                    // columnIndex = (++columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
                                     if(rowIndex > 5) {
                                         break loop3;
                                     }
                                     diffDay--;
                                 }
-                                result[rowIndex][columnIndex].push(
+                                result[rowIndex][columnIndex++].push(
                                     {
                                         clickResponse: filteredAnnouncement[j].id,
                                         isStart: false,
@@ -343,3 +343,4 @@ module.exports = {
     }
     return announcement;
   }
+
