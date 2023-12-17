@@ -258,11 +258,59 @@ module.exports = {
       const nonActivatedUser = allUser.filter((user) => {
         return user.activatedTime === null;
       });
+
+      newUserPercentage = (newUser.length / allUser.length) * 100,
+      activeUserPercentage = (activeUser.length / allUser.length) * 100,
+      nonActiveUserPercentage = (nonActiveUser.length / allUser.length) * 100,
+      nonActivatedUserPercentage = (nonActivatedUser.length / allUser.length) * 100
+
+
+      if (newUserPercentage % 1 >= 0.5) {
+        newUserPercentage = Math.ceil(newUserPercentage);
+      } else {
+        newUserPercentage = Math.floor(newUserPercentage);
+      }
+      if (activeUserPercentage % 1 >= 0.5) {
+        activeUserPercentage = Math.ceil(activeUserPercentage);
+      } else {
+        activeUserPercentage = Math.floor(activeUserPercentage);
+      }
+      if (nonActiveUserPercentage % 1 >= 0.5) {
+        nonActiveUserPercentage = Math.ceil(nonActiveUserPercentage);
+      } else {
+        nonActiveUserPercentage = Math.floor(nonActiveUserPercentage);
+      }
+      if (nonActivatedUserPercentage % 1 >= 0.5) {
+        nonActivatedUserPercentage = Math.ceil(nonActivatedUserPercentage);
+      } else {
+        nonActivatedUserPercentage = Math.floor(nonActivatedUserPercentage);
+      }
+      
+      let percentageArray = [newUserPercentage, activeUserPercentage, nonActiveUserPercentage, nonActivatedUserPercentage];
+      const totalPercentage = newUserPercentage + activeUserPercentage + nonActiveUserPercentage + nonActivatedUserPercentage
+      let i = 0
+      while(totalPercentage < 100) {
+        if (i === 4) i = 0;
+        percentageArray[i]++;
+        totalPercentage++;
+      }
+      while(totalPercentage > 100) {
+        if (i === 4) i = 0;
+        percentageArray[i]--;
+        totalPercentage--;
+      }
+      // const result = {
+      //   newUserPercentage: (newUser.length / allUser.length) * 100,
+      //   activeUserPercentage: (activeUser.length / allUser.length) * 100,
+      //   nonActiveUserPercentage: (nonActiveUser.length / allUser.length) * 100,
+      //   nonActivatedUserPercentage: (nonActivatedUser.length / allUser.length) * 100
+      // };
       const result = {
-        newUserPercentage: (newUser.length / allUser.length) * 100,
-        activeUserPercentage: (activeUser.length / allUser.length) * 100,
-        nonActiveUserPercentage: (nonActiveUser.length / allUser.length) * 100,
-        nonActivatedUserPercentage: (nonActivatedUser.length / allUser.length) * 100
+        newUserPercentage: percentageArray[0],
+        activeUserPercentage: percentageArray[1],
+        nonActiveUserPercentage: percentageArray[2],
+        nonActivatedUserPercentage: percentageArray[3],
+        totalPercentage: totalPercentage
       };
       return result;
     } catch (error) {
