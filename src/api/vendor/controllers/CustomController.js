@@ -299,12 +299,6 @@ module.exports = {
         percentageArray[i]--;
         totalPercentage--;
       }
-      // const result = {
-      //   newUserPercentage: (newUser.length / allUser.length) * 100,
-      //   activeUserPercentage: (activeUser.length / allUser.length) * 100,
-      //   nonActiveUserPercentage: (nonActiveUser.length / allUser.length) * 100,
-      //   nonActivatedUserPercentage: (nonActivatedUser.length / allUser.length) * 100
-      // };
       const result = {
         newUserPercentage: percentageArray[0],
         activeUserPercentage: percentageArray[1],
