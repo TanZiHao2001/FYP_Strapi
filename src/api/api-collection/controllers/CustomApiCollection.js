@@ -300,6 +300,72 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  createWholeApiCollectionFromFile: async (ctx) => {
+    try {
+      const {category_name, api_collection} = ctx.request.body;
+      const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
+        filters: {
+          category_name: {
+            $eq: category_name
+          }
+        }
+      });
+      console.log(apiCategory[0].id)
+      /*
+      ALL OF THE NAMES ARE BASED ON JSON INPUT, NOT NAMED DEFINED IN STRAPI, HENCE WILL HAVE DIFFERENT NAME
+      FIRST LEVEL: api_collection (1 only)
+        ATTRIBUTES: 
+        1. api_collection_name
+        2. api_collection_description
+        3. api_category_id (this is apiCategory[0].id)
+
+      SECOND LEVEL PART 1: object (1 only)
+        ATTRIBUTES:
+        1. object_json
+        2. api_collection_id (this can be obtained after creating api_collection)
+
+        THIRD LEVEL FOR SECOND PART 1: attributes (an array of attributes)
+        ATTRIBUTES:
+        1. attribute_name
+        2. attribute_type,
+        3. attribute_description
+        *4. object_id (this can be obtained after creating object) (NOTE: this is only needed for the first level, for its child does not need this attribute)
+        ***
+        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
+        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
+        ***
+
+      SECOND LEVEL PART 2: apis (an array of apis)
+        ATTRIBUTES:
+        1. api_name
+        2. api_description
+        3. api_return
+        4. api method
+        5. api_endpoint
+        6. api_response_json
+        7. api_collection_id (this can be obtained after creating api_collection)
+
+        THIRD LEVEL FOR SECOND PART 2 (PART 1): api_parameters (an array of api_parameters)
+        ATTRIBUTES:
+        1. attribute_name
+        2. attribute_type,
+        3. attribute_description
+        *4. api_id (this can be obtained after creating api) (NOTE: this is only needed for the first level, for its child does not need this attribute)
+        ***
+        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
+        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
+        ***
+      
+        THIRD LEVEL FOR SECOND PART 2 (PART 2): api_request_codes (an array of api_request_codes)
+        ATTRIBUTES:
+        1. language_name (java, python, go, http, javascript, php, ruby)
+        2. api_request_code
+      */
+      return api_collection;
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  }
 };
 
 

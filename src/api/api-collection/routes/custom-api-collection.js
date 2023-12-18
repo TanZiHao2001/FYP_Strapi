@@ -43,6 +43,14 @@ module.exports = {
       config: {
         auth: false
       }
-    }
+    },
+    {
+      method: 'POST',
+      path: '/custom/create-whole-api-collection',
+      handler: CustomApiCollection.createWholeApiCollectionFromFile,
+      config: {
+        auth: false
+      }
+    },
   ]
 }
