@@ -303,6 +303,12 @@ module.exports = {
   createWholeApiCollectionFromFile: async (ctx) => {
     try {
       const {category_name, api_collection} = ctx.request.body;
+      const object = api_collection.object;
+      const apis = api_collection.apis;
+      const object_attributes = object.attributes;
+      const api_parameters = apis.api_parameters;
+      const api_request_codes = apis.api_request_codes;
+
       const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
         filters: {
           category_name: {
@@ -310,57 +316,57 @@ module.exports = {
           }
         }
       });
-      console.log(apiCategory[0].id)
-      /*
-      ALL OF THE NAMES ARE BASED ON JSON INPUT, NOT NAMED DEFINED IN STRAPI, HENCE WILL HAVE DIFFERENT NAME
-      FIRST LEVEL: api_collection (1 only)
-        ATTRIBUTES: 
-        1. api_collection_name
-        2. api_collection_description
-        3. api_category_id (this is apiCategory[0].id)
 
-      SECOND LEVEL PART 1: object (1 only)
-        ATTRIBUTES:
-        1. object_json
-        2. api_collection_id (this can be obtained after creating api_collection)
+      const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
+        data: {
+          api_collection_name: api_collection.api_collection_name,
+          description: api_collection.api_collection_description,
+          short_description: api_collection.api_collection_short_description,
+          api_category_id: apiCategory[0].id,
+          publishedAt: Date.now()
+        }
+      });
 
-        THIRD LEVEL FOR SECOND PART 1: attributes (an array of attributes)
-        ATTRIBUTES:
-        1. attribute_name
-        2. attribute_type,
-        3. attribute_description
-        *4. object_id (this can be obtained after creating object) (NOTE: this is only needed for the first level, for its child does not need this attribute)
-        ***
-        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
-        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
-        ***
+      const createObject = await strapi.entityService.create("api::api-coll-obj.api-coll-obj", {
+        data: {
+          object: object.object_json,
+          api_collection: createApiCollection.id,
+          publishedAt: Date.now()
+        }
+      });
 
-      SECOND LEVEL PART 2: apis (an array of apis)
-        ATTRIBUTES:
-        1. api_name
-        2. api_description
-        3. api_return
-        4. api method
-        5. api_endpoint
-        6. api_response_json
-        7. api_collection_id (this can be obtained after creating api_collection)
-
-        THIRD LEVEL FOR SECOND PART 2 (PART 1): api_parameters (an array of api_parameters)
-        ATTRIBUTES:
-        1. attribute_name
-        2. attribute_type,
-        3. attribute_description
-        *4. api_id (this can be obtained after creating api) (NOTE: this is only needed for the first level, for its child does not need this attribute)
-        ***
-        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
-        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
-        ***
-      
-        THIRD LEVEL FOR SECOND PART 2 (PART 2): api_request_codes (an array of api_request_codes)
-        ATTRIBUTES:
-        1. language_name (java, python, go, http, javascript, php, ruby)
-        2. api_request_code
-      */
+      for(const attribute of object_attributes) {
+        if(!attribute.child_attributes) {
+          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+            data: {
+              attr_name: attribute.attribute_name,
+              attr_type: attribute.attribute_type,
+              attr_description: attribute.attribute_description,
+              object_id: createObject.id,
+              publishedAt: Date.now()
+            }
+          });
+        } else {
+          console.log(attribute.child_attributes)
+          const childAttributesIds = await insertChildtAttributes(attribute.child_attributes)
+          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+            data: {
+              attr_name: attribute.attribute_name,
+              attr_type: attribute.attribute_type,
+              attr_description: attribute.attribute_description,
+              object_id: createObject.id,
+              publishedAt: Date.now()
+            }
+          });
+          console.log(childAttributesIds)
+          console.log(createObjectAttribute.id)
+          await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createObjectAttribute.id, {
+            data: {
+              child_attr_ids: childAttributesIds
+            }
+          });
+        }
+      }
       return api_collection;
     } catch (error) {
       await errorHandler(ctx, error)
@@ -421,3 +427,136 @@ function generatePopulate(depth, foreignKey, fields) {
   return populateObject;
 }
 
+async function insertChildtAttributes(attributes) {
+  const insertedAttributeIds = [];
+
+  for(const attribute of attributes) {
+    console.log(attribute)
+    const { attribute_name, attribute_type, attribute_description, child_attributes } = attribute;
+    
+    // Insert the current attribute into the database
+    const createdAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+      data: {
+        attr_name: attribute_name,
+        attr_type: attribute_type,
+        attr_description: attribute_description,
+        publishedAt: Date.now()
+      }
+    });
+
+    // Store the ID of the inserted attribute
+    insertedAttributeIds.push(createdAttribute.id);
+
+    // If the attribute has child attributes, recursively insert them
+    if (child_attributes && child_attributes.length > 0) {
+      const childIds = await insertChildtAttributes(child_attributes);
+      await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createdAttribute.id, {
+        data: {
+          child_attr_ids: childIds
+        }
+      });
+    }
+  }
+  return insertedAttributeIds;
+}
+
+
+async function findChildAttributes(attribute, childAttributesId) {
+
+
+  attribute.forEach(async (child) => {
+    if(!child.child_attributes) {
+      const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+            data: {
+              attr_name: attribute.attribute_name,
+              attr_type: attribute.attribute_type,
+              attr_description: attribute.attribute_description,
+              publishedAt: Date.now()
+            }
+          });
+      childAttributesId.push(createObjectAttribute.id);
+      // return; 
+    }
+    // findChildAttributes(child, childAttributesId)
+    else {
+      findChildAttributes
+    }
+    const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+      data: {
+        attr_name: attribute.attribute_name,
+        attr_type: attribute.attribute_type,
+        attr_description: attribute.attribute_description,
+        child_attr_ids: childAttributesId,
+        publishedAt: Date.now()
+      }
+    });
+    childAttributesId = [];
+  })
+  findChildAttributes(attribute.child_attributes, childAttributesId);
+  return;
+}
+
+  // if(!attribute.child_attributes) {
+  //   const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+  //     data: {
+  //       attr_name: attribute.attribute_name,
+  //       attr_type: attribute.attribute_type,
+  //       attr_description: attribute.attribute_description,
+  //       publishedAt: Date.now()
+  //     }
+  //   });
+  //   childAttributesId.push(createObjectAttribute.id);
+  //   return;
+  // }
+
+
+  /*
+      ALL OF THE NAMES ARE BASED ON JSON INPUT, NOT NAMED DEFINED IN STRAPI, HENCE WILL HAVE DIFFERENT NAME
+      FIRST LEVEL: api_collection (1 only)
+        ATTRIBUTES: 
+        1. api_collection_name
+        2. api_collection_description
+        3. api_category_id (this is apiCategory[0].id)
+
+      SECOND LEVEL PART 1: object (1 only)
+        ATTRIBUTES:
+        1. object_json
+        2. api_collection_id (this can be obtained after creating api_collection)
+
+        THIRD LEVEL FOR SECOND PART 1: attributes (an array of attributes)
+        ATTRIBUTES:
+        1. attribute_name
+        2. attribute_type,
+        3. attribute_description
+        *4. object_id (this can be obtained after creating object) (NOTE: this is only needed for the first level, for its child does not need this attribute)
+        ***
+        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
+        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
+        ***
+
+      SECOND LEVEL PART 2: apis (an array of apis)
+        ATTRIBUTES:
+        1. api_name
+        2. api_description
+        3. api_return
+        4. api method
+        5. api_endpoint
+        6. api_response_json
+        7. api_collection_id (this can be obtained after creating api_collection)
+
+        THIRD LEVEL FOR SECOND PART 2 (PART 1): api_parameters (an array of api_parameters)
+        ATTRIBUTES:
+        1. attribute_name
+        2. attribute_type,
+        3. attribute_description
+        *4. api_id (this can be obtained after creating api) (NOTE: this is only needed for the first level, for its child does not need this attribute)
+        ***
+        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
+        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
+        ***
+      
+        THIRD LEVEL FOR SECOND PART 2 (PART 2): api_request_codes (an array of api_request_codes)
+        ATTRIBUTES:
+        1. language_name (java, python, go, http, javascript, php, ruby)
+        2. api_request_code
+      */
