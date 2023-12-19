@@ -431,7 +431,6 @@ async function insertChildtAttributes(attributes) {
   const insertedAttributeIds = [];
 
   for(const attribute of attributes) {
-    console.log(attribute)
     const { attribute_name, attribute_type, attribute_description, child_attributes } = attribute;
     
     // Insert the current attribute into the database
