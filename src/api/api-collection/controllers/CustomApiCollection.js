@@ -4,6 +4,7 @@ const cookie = require("cookie");
 const { getVendorIdFromToken } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
+const { create } = require("tar");
 
 module.exports = {
   apiCollection: async (ctx) => {
@@ -306,8 +307,8 @@ module.exports = {
       const object = api_collection.object;
       const apis = api_collection.apis;
       const object_attributes = object.attributes;
-      const api_parameters = apis.api_parameters;
-      const api_request_codes = apis.api_request_codes;
+      // const api_parameters = apis.api_parameters;
+      // const api_request_codes = apis.api_request_codes;
 
       const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
         filters: {
@@ -347,24 +348,72 @@ module.exports = {
             }
           });
         } else {
-          console.log(attribute.child_attributes)
-          const childAttributesIds = await insertChildtAttributes(attribute.child_attributes)
+          const childAttributesIds = await insertChildtAttributes(attribute.child_attributes, "api::api-coll-obj-attr.api-coll-obj-attr")
           const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
             data: {
               attr_name: attribute.attribute_name,
               attr_type: attribute.attribute_type,
               attr_description: attribute.attribute_description,
               object_id: createObject.id,
+              child_attr_ids: childAttributesIds,
               publishedAt: Date.now()
             }
           });
-          console.log(childAttributesIds)
-          console.log(createObjectAttribute.id)
-          await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createObjectAttribute.id, {
+          // await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createObjectAttribute.id, {
+          //   data: {
+          //     child_attr_ids: childAttributesIds
+          //   }
+          // });
+        }
+      }
+
+      for(const api of apis) {
+        const createApi = await strapi.entityService.create("api::api.api", {
+          data: {
+            api_name: api.api_name,
+            api_description: api.api_description,
+            api_method: api.api_method,
+            api_endpoint: api.api_endpoint,
+            api_return: api.api_return,
+            api_response_json: api.api_response_json,
+            api_collection_id: createApiCollection.id
+          }
+        });
+        const api_request_codes = api.api_request_codes;
+        for(const api_request_code of api_request_codes) {
+          const createApiRequestCode = await strapi.entityService.create("api::api-req-code-lang.api-req-code-lang", {
             data: {
-              child_attr_ids: childAttributesIds
+              lang_name: api_request_code.language_name,
+              api_req_code: api_request_code.api_request_code,
+              api_id: createApi.id
             }
-          });
+          })
+        }
+        const api_parameters = api.api_parameters;
+        for(const api_parameter of api_parameters) {
+          if(!api_parameter.child_attributes) {
+            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
+              data: {
+                attr_name: api_parameter.attribute_name,
+                attr_type: api_parameter.attribute_type,
+                attr_description: api_parameter.attribute_description,
+                api_id: createApi.id,
+                publishedAt: Date.now()
+              }
+            });
+          } else {
+            const childAttributesIds = await insertChildtAttributes(api_parameter.child_attributes, "api::api-param.api-param")
+            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
+              data: {
+                attr_name: api_parameter.attribute_name,
+                attr_type: api_parameter.attribute_type,
+                attr_description: api_parameter.attribute_description,
+                api_id: createApi.id,
+                child_attr_ids: findChildAttributes,
+                publishedAt: Date.now()
+              }
+            });
+          }
         }
       }
       return api_collection;
@@ -427,14 +476,14 @@ function generatePopulate(depth, foreignKey, fields) {
   return populateObject;
 }
 
-async function insertChildtAttributes(attributes) {
+async function insertChildtAttributes(attributes, contentType) {
   const insertedAttributeIds = [];
 
   for(const attribute of attributes) {
     const { attribute_name, attribute_type, attribute_description, child_attributes } = attribute;
     
     // Insert the current attribute into the database
-    const createdAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+    const createdAttribute = await strapi.entityService.create(contentType, {
       data: {
         attr_name: attribute_name,
         attr_type: attribute_type,
@@ -449,7 +498,7 @@ async function insertChildtAttributes(attributes) {
     // If the attribute has child attributes, recursively insert them
     if (child_attributes && child_attributes.length > 0) {
       const childIds = await insertChildtAttributes(child_attributes);
-      await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createdAttribute.id, {
+      await strapi.entityService.update("contentType", createdAttribute.id, {
         data: {
           child_attr_ids: childIds
         }
