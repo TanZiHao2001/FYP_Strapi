@@ -376,7 +376,8 @@ module.exports = {
             api_endpoint: api.api_endpoint,
             api_return: api.api_return,
             api_response_json: api.api_response_json,
-            api_collection_id: createApiCollection.id
+            api_collection_id: createApiCollection.id,
+            publishedAt: Date.now()
           }
         });
         const api_request_codes = api.api_request_codes;
@@ -385,7 +386,8 @@ module.exports = {
             data: {
               lang_name: api_request_code.language_name,
               api_req_code: api_request_code.api_request_code,
-              api_id: createApi.id
+              api_id: createApi.id,
+              publishedAt: Date.now()
             }
           })
         }
@@ -478,7 +480,6 @@ function generatePopulate(depth, foreignKey, fields) {
 
 async function insertChildtAttributes(attributes, contentType) {
   const insertedAttributeIds = [];
-
   for(const attribute of attributes) {
     const { attribute_name, attribute_type, attribute_description, child_attributes } = attribute;
     
@@ -497,8 +498,8 @@ async function insertChildtAttributes(attributes, contentType) {
 
     // If the attribute has child attributes, recursively insert them
     if (child_attributes && child_attributes.length > 0) {
-      const childIds = await insertChildtAttributes(child_attributes);
-      await strapi.entityService.update("contentType", createdAttribute.id, {
+      const childIds = await insertChildtAttributes(child_attributes, contentType);
+      await strapi.entityService.update(contentType, createdAttribute.id, {
         data: {
           child_attr_ids: childIds
         }
