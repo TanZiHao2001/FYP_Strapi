@@ -78,7 +78,6 @@ module.exports = {
             })
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
             let filteredAnnouncement = announcement.filter(item => item !== null);
-            console.log(filteredAnnouncement)
             const formattedDates = currentMonthCalendar.map(innerArray =>
                 innerArray.map(obj => (new Date(obj.date).toDateString()))
               );
@@ -94,8 +93,6 @@ module.exports = {
                         // 2023 12 2 vs 2023 12 3
                         // check if the startDate for current announcement is already earlier than the current checking date
                         if( (startMonth < new Date(currMonthDate[k]).getMonth()) || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
-                            console.log("j1" + " " + j)
-                            console.log("k1" + " " + k)
                             break loop3;
                         };
                         // check if startDate for current announcement matches the current checking date  
@@ -105,9 +102,6 @@ module.exports = {
                             let columnIndex = formattedDates[rowIndex].indexOf(new Date(startYear, startMonth, startDate, 8).toDateString());
                             const tempLevel = [false, false, false];
                             const tempResult = result[rowIndex][columnIndex]
-                            console.log("j2" + " " + j)
-                            console.log("k2" + " " + k)
-                            console.log(rowIndex + " " + columnIndex)
                             for(let x = 0; x < tempResult.length; x++) {
                                 tempLevel[x] = true;
                             }
