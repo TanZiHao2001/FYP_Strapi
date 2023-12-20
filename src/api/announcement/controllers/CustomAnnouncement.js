@@ -29,7 +29,7 @@ module.exports = {
         );
 
         const result = await contentAPI.output(entities, contentType);
-          
+        
         const tempResult = groupByDate(result);
         
         tempResult.active.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
@@ -280,6 +280,48 @@ module.exports = {
         }
         
     },
+    getAnnouncementAlert: async (ctx) => {
+        try {
+            ctx.request.query = {
+                fields: ["title", "description", "startDate", "endDate", "color"],
+                publicationState: 'live',
+            };
+      
+            const contentType = strapi.contentType(
+                "api::announcement.announcement"
+            );
+      
+            const sanitizedQueryParams = await contentAPI.query(
+                ctx.query,
+                contentType
+            );
+    
+            const entities = await strapi.entityService.findMany(
+                contentType.uid,
+                sanitizedQueryParams
+            );
+    
+            const result = await contentAPI.output(entities, contentType);
+            
+            const tempResult = groupByDate(result);
+            
+            tempResult.active.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+            tempResult.upcoming.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+            tempResult.expired.sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+    
+            const finalResult = [...tempResult.active, ...tempResult.upcoming, ...tempResult.expired].map(({ id, title, description, startDate, endDate, color }) => ({
+                id,
+                title,
+                description,
+                startDate,
+                endDate,
+                color
+            }));
+            return finalResult.slice(0, 5);
+        } catch (error) {
+            errorHandler(ctx, error)
+        }
+    }
     
   };
 

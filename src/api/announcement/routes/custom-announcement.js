@@ -36,5 +36,13 @@ module.exports = {
         auth: false
       }
     },
+    {
+      method: 'GET',
+      path: '/custom/get-announcement-alert',
+      handler: CustomAnnouncement.getAnnouncementAlert,
+      config: {
+        auth: false
+      }
+    }
   ]
 }
