@@ -59,12 +59,12 @@ module.exports = {
     },
     getAnnouncementEventList: async (ctx) => {
         try{
-            // const {year, month} = ctx.request.body
+            const {year, month} = ctx.request.body
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
                 fields: ["title", "startDate", "endDate", "color"]
             });
             
-            const currentMonthCalendar = getCurrentMonthCalendar(2023, 12);
+            const currentMonthCalendar = getCurrentMonthCalendar(year, month);
             const result = create3DArray();
             let currMonthDate = []
             for(let i = 0; i < currentMonthCalendar.length; i++) {

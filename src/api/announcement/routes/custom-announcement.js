@@ -21,7 +21,7 @@ module.exports = {
       }
     },
     {
-      method: 'GET',
+      method: 'POST',
       path: '/custom/get-announcement-event-list',
       handler: CustomAnnouncement.getAnnouncementEventList,
       config: {
