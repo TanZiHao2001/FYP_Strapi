@@ -5,6 +5,7 @@ const { getVendorIdFromToken } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
 const { create } = require("tar");
+const schema = require("../../schema");
 
 module.exports = {
   apiCollection: async (ctx) => {
@@ -303,12 +304,20 @@ module.exports = {
   },
   createWholeApiCollectionFromFile: async (ctx) => {
     try {
+      const fileContent = ctx.request.body
+      // try {
+      //   const message = await checkFileContent(ctx, fileContent);
+      // } catch (error) {
+      //   console.log("here")
+      //   await errorHandler(ctx, error)
+      // }
+      if(!(await checkFileContent(ctx, fileContent))) {
+        return;
+      }
       const {category_name, api_collection} = ctx.request.body;
       const object = api_collection.object;
       const apis = api_collection.apis;
       const object_attributes = object.attributes;
-      // const api_parameters = apis.api_parameters;
-      // const api_request_codes = apis.api_request_codes;
 
       const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
         filters: {
@@ -317,7 +326,8 @@ module.exports = {
           }
         }
       });
-
+      
+      return 0;
       const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection.api_collection_name,
@@ -359,11 +369,6 @@ module.exports = {
               publishedAt: Date.now()
             }
           });
-          // await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", createObjectAttribute.id, {
-          //   data: {
-          //     child_attr_ids: childAttributesIds
-          //   }
-          // });
         }
       }
 
@@ -509,6 +514,316 @@ async function insertChildtAttributes(attributes, contentType) {
   return insertedAttributeIds;
 }
 
+async function checkFileStructure(ctx, fileContent, schema, path = []) {
+  try {
+    for (const key in schema) {
+      // if(Array.isArray(schema[key])) console.log(schema + " " + key)
+      const expectedType = schema[key];
+      console.log(typeof expectedType + " " + key)
+      if(!fileContent) return;
+      if (!(key in fileContent) ) { //&& !fileContent
+        ctx.send({error: `Missing key \'${key}\' at path: ${path.join('.')}`});
+      } else if (typeof fileContent[key] !== typeof expectedType) {
+        ctx.send({error: `Incorrect type for key \'${key}\' at path: ${path.join('.')}. Expected ${typeof expectedType}, got ${typeof fileContent[key]}`});
+      } else if (typeof expectedType === 'object' && fileContent[key] !== null ) { //&& key.length !== 1
+        checkFileStructure(ctx, fileContent[key], schema[key], path.concat(key));
+      }
+    }
+  } catch (error) {
+    await errorHandler(ctx, error)
+  }
+}
+
+async function checkFileContent2(ctx, fileContent) {
+  try {
+    for(const key in schema.getSchemaApiCategory()) {
+      if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCategory()))) {
+        return;
+      }
+
+      if(key === "api_collection") {
+        fileContent = fileContent[key];
+        for(const key in schema.getSchemaApiCollection()) {
+          if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCollection()))) {
+            return;
+          }
+
+          if(key === "object") {
+            fileContent = fileContent[key];
+            for(const key in schema.getSchemaObject()) {
+              if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaObject()))) {
+                return;
+              }
+              if(key === "attributes") {
+                fileContent = fileContent[key];
+                // for(const attribute of fileContent) {
+                //   for(const key in attribute) {
+                //     if(!(key in schema.getSchemaObjectAttribute())) {
+                //       return ctx.send({error: `Missing or misspelt key \'${key}\'`});
+                //     }
+                //   }
+                // }
+                console.log(fileContent)
+                
+              }
+            }
+          }
+        }
+      }
+    }
+    return true;
+  } catch (error) {
+    await errorHandler(ctx, error)
+    return false;
+  }
+  
+}
+
+async function checkFileContent(ctx, fileContent) {
+  try {
+    //check key of api category
+    for(const key in schema.getSchemaApiCategory()) {
+      if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCategory()))) {
+        return;
+      }
+    }
+
+    //check key of api collection
+    fileContent = fileContent["api_collection"];
+    for(const key in schema.getSchemaApiCollection()) {
+      if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCollection()))) {
+        return;
+      }
+    }
+
+    //check key of object
+    const fileContentObject = fileContent["object"];
+    for(const key in schema.getSchemaObject()) {
+      if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContentObject, schema.getSchemaObject()))) {
+        return;
+      }
+    }
+    
+    //check key of attributes
+    const fileContentAttribute = fileContentObject["attributes"];
+    checkChildAttributes(ctx, fileContentAttribute, schema.getSchemaObjectAttribute());
+
+    //check key of apis
+    const fileContentApi = fileContent["apis"];
+    for(const key in schema.getSchemaApi()) {
+      for(const api of fileContentApi) {
+        if(!(await checkKeyExistAndTypeOfValue(ctx, key, api, schema.getSchemaApi()))) {
+          return;
+        }
+      }
+    }
+
+    //check key of api_request_code
+    for(const key in schema.getSchemaApiRequestCode()) {
+      for(const api of fileContentApi) {
+        const requestCodes = api["api_request_codes"];
+        for(const requestCode of requestCodes) {
+          if(!(await checkKeyExistAndTypeOfValue(ctx, key, requestCode, schema.getSchemaApiRequestCode()))) {
+            return;
+          }
+          if(key === "language_name") {
+            if(!(schema.getLanguageType().includes(requestCode[key]))) {
+              ctx.send({error: `Language name can only be ${schema.getLanguageType()}`});
+            }
+          }
+        }
+      }
+    }
+
+    //check key of api_parameters
+    for(const api of fileContentApi) {
+      const fileContentParameter = api["api_parameters"];
+      checkChildAttributes(ctx, fileContentParameter, schema.getSchemaApiParameter());
+    }
+    return true;
+  } catch (error) {
+    await errorHandler(ctx, error)
+    return false;
+  }
+  
+}
+
+async function checkChildAttributes(ctx, fileContent, schema) {
+  for(const key in schema) {
+    for(const attribute of fileContent) {
+      if(!(await checkKeyExistAndTypeOfValue(ctx, key, attribute, schema))) {
+        return;
+      }
+      if(attribute.child_attributes) {
+        checkChildAttributes(ctx, attribute.child_attributes, schema)
+      }
+    }
+  }
+}
+
+async function checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema) {
+  try {
+    if(!(key in fileContent)) {
+      return ctx.send({error: `Missing or misspelt key \'${key}\'`});
+    } else if(typeof fileContent[key] !== schema[key]) {
+      return ctx.send({error: `Incorrect type for key \'${key}\'. Expected ${schema[key]}, got ${typeof fileContent[key]}`});
+    }
+    return true;
+  } catch (error) {
+    await errorHandler(ctx, error);
+    return false;
+  }
+  
+}
+
+function getSchema() {
+  const schema = {
+    "category_name": "CORE RESOURCE",
+    "api_collection": {
+      "api_collection_name": "FYP API TESTING COLLECTION",
+      "api_collection_description": "This object represents a customer of your business. Use it to create recurring charges and track payments that belong to the same customer.",
+      "api_collection_short_description": "short description",
+      "object": {
+        "object_json": "FYP API TESTINGFYP API TESTINGFYP API TESTINGFYP API TESTING",
+        "attributes": [
+          {
+            "attribute_name": "FYP2",
+            "attribute_type": "hash",
+            "attribute_description": "FYP API TESTING",
+            "child_attributes": [
+              {
+                "attribute_name": "FYP21",
+                "attribute_type": "string",
+                "attribute_description": "FYP API TESTING."
+              },
+              {
+                "attribute_name": "FYP22",
+                "attribute_type": "string",
+                "attribute_description": "Two-letter country code (ISO 3166-1 alpha-2)."
+              },
+              {
+                "attribute_name": "FYP23",
+                "attribute_type": "enum",
+                "attribute_description": "Two-letter country code (ISO 3166-1 alpha-2).",
+                "child_attributes": [
+                  {
+                      "attribute_name": "enumFYP23",
+                      "attribute_type": "enum",
+                      "attribute_description": "test enum"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "attribute_name": "FYP3",
+            "attribute_type": "hash",
+            "attribute_description": "FYP API TESTING",
+            "child_attributes": [
+              {
+                "attribute_name": "FYP31",
+                "attribute_type": "hash",
+                "attribute_description": "FYP API TESTING",
+                "child_attributes": [
+                  {
+                    "attribute_name": "FYP311",
+                    "attribute_type": "string",
+                    "attribute_description": "FYP API TESTING",
+                    "child_attributes": [
+                      {
+                          "attribute_name": "FYP3111",
+                          "attribute_type": "string",
+                          "attribute_description": "FYP API TESTING"
+                      },
+                      {
+                          "attribute_name": "FYP3112",
+                          "attribute_type": "string",
+                          "attribute_description": "FYP API TESTING"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "apis": [
+        {
+          "api_name": "FYPTESTAPI",
+          "api_description": "FYP TEST API",
+          "api_return": "Returns API TEST",
+          "api_method": "POST",
+          "api_endpoint": "/v1/fyp-test-api",
+          "api_response_json": "test api",
+          "api_request_codes": [
+            {
+              "language_name": "java",
+              "api_request_code": "java test;"
+            },
+            {
+              "language_name": "javascript",
+              "api_request_code": "javascript test;"
+            }
+          ],
+          "api_parameters": [
+            {
+              "attribute_name": "test1",
+              "attribute_type": "testdas",
+              "attribute_description": "test.",
+              "child_attributes": [
+                  {
+                      "attribute_name": "test1.1",
+                      "attribute_type": "testdas1",
+                      "attribute_description": "testapi",
+                      "child_attributes": [
+                          {
+                              "attribute_name": "test1.1.1",
+                              "attribute_type": "testdas11",
+                              "attribute_description": "testapi2"
+                          },
+                          {
+                              "attribute_name": "test1.1.2",
+                              "attribute_type": "testdas12",
+                              "attribute_description": "testapi3"
+                          }
+                      ]
+                  }
+              ]
+            },
+            {
+              "attribute_name": "test api",
+              "attribute_type": "yeesitn",
+              "attribute_description": "lorem phileo"
+            }
+          ]
+        },
+        {
+          "api_name": "FYP TEST API 2",
+          "api_description": "Retriczxczxczxct.",
+          "api_return": "Retuzdvzczxcxza deleted property that’s set to true.",
+          "api_method": "POST",
+          "api_endpoint": "/v1/fyp-test-api2",
+          "api_response_json": "{\n  \"asfsafa\n  \"livasfsadasdn}",
+          "api_request_codes": [
+            {
+              "language_name": "java",
+              "api_request_code": "Stripe.apiKey = \"sk_test_4eC39HqLyjWDarjtT1zdp7dc\";\n\nCustomer customer =\n  Customer.retrieve(\"cus_9s6XKzkNRiz8i3\");"
+            },
+            {
+              "language_name": "php",
+              "api_request_code": "php test;"
+            }
+          ],
+          "api_parameters": []
+        }
+      ]
+    }
+  }
+
+  return schema;
+  
+}
 
 async function findChildAttributes(attribute, childAttributesId) {
 
