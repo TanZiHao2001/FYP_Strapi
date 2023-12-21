@@ -317,6 +317,10 @@ module.exports = {
                 endDate,
                 color
             }));
+            const formData = new FormData();
+            formData.append("files", "binary");
+            formData.append("fileInfo", "{\"name\": \"testUpload.txt\", \"folder\": null}")
+            console.log(formData)
             return finalResult.slice(0, 5);
         } catch (error) {
             errorHandler(ctx, error)

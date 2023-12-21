@@ -54,6 +54,16 @@
     "short_description": {
       "type": "string",
       "maxLength": 150
+    },
+    "documentation_file": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
     }
   }
 }

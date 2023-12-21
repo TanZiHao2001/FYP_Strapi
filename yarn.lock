@@ -4675,6 +4675,11 @@
     "combined-stream" "^1.0.8"
     "mime-types" "^2.1.12"
 
+"formdata-node@^6.0.3":
+  "integrity" "sha512-8e1++BCiTzUno9v5IZ2J6bv4RU+3UKDmqWUQD0MIMVCd9AdhWkO1gw57oo1mNEX1dMq2EGI+FbWz4B92pscSQg=="
+  "resolved" "https://registry.npmjs.org/formdata-node/-/formdata-node-6.0.3.tgz"
+  "version" "6.0.3"
+
 "formidable@^1.1.1":
   "integrity" "sha512-KcpbcpuLNOwrEjnbpMC0gS+X8ciDoZE1kkqzat4a8vrprf+s9pKNQ/QIwWfbfs4ltgmFl3MD177SNTkve3BwGQ=="
   "resolved" "https://registry.npmjs.org/formidable/-/formidable-1.2.6.tgz"
