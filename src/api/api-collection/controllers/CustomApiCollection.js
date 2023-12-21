@@ -534,51 +534,6 @@ async function checkFileStructure(ctx, fileContent, schema, path = []) {
   }
 }
 
-async function checkFileContent2(ctx, fileContent) {
-  try {
-    for(const key in schema.getSchemaApiCategory()) {
-      if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCategory()))) {
-        return;
-      }
-
-      if(key === "api_collection") {
-        fileContent = fileContent[key];
-        for(const key in schema.getSchemaApiCollection()) {
-          if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaApiCollection()))) {
-            return;
-          }
-
-          if(key === "object") {
-            fileContent = fileContent[key];
-            for(const key in schema.getSchemaObject()) {
-              if(!(await checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema.getSchemaObject()))) {
-                return;
-              }
-              if(key === "attributes") {
-                fileContent = fileContent[key];
-                // for(const attribute of fileContent) {
-                //   for(const key in attribute) {
-                //     if(!(key in schema.getSchemaObjectAttribute())) {
-                //       return ctx.send({error: `Missing or misspelt key \'${key}\'`});
-                //     }
-                //   }
-                // }
-                console.log(fileContent)
-                
-              }
-            }
-          }
-        }
-      }
-    }
-    return true;
-  } catch (error) {
-    await errorHandler(ctx, error)
-    return false;
-  }
-  
-}
-
 async function checkFileContent(ctx, fileContent) {
   try {
     //check key of api category
