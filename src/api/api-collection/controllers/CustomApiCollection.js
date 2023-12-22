@@ -425,7 +425,7 @@ module.exports = {
     try {
       const {file} = ctx.request.body;
       console.log(file);
-      return 217;
+      ctx.send({message: "217"});
     } catch (error) {
       await errorHandler(ctx, error)
     }
