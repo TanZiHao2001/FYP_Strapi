@@ -68,7 +68,7 @@ module.exports = {
                 },
               },
             },
-            fields: ["api_collection_name", "description", "short_description"],
+            fields: ["api_collection_name", "description"],
             publicationState: 'live',
             populate: {
               object_id: {
@@ -265,39 +265,92 @@ module.exports = {
   },
   deleteApiCollection: async (ctx) => {
     try {
-      const collectionID = ctx.params.id;
-      const findOneResult = await strapi.entityService.findOne("api::api-collection.api-collection", collectionID,{
-        fields: ['api_collection_name'],
-        populate: {
-          access_controls: {
-            fields: ["status"],
-            filters: {
-              status: {
-                $eq: "Approved",
+        const id = ctx.params.id;
+        const maxDepth = 4; 
+        const childAttr = "child_attr_ids"
+        const childAttrfields = ["attr_name", "attr_type", "attr_description"];
+        const childParam = "child_attr_ids";
+        const childParamFields = ["attr_name", "attr_type", "attr_description"];
+        
+        ctx.request.query = {
+          filters: {
+            api_collections: {
+              id: {
+                $eq: id
               }
             },
-            populate: {
-              vendor_id: {
-                fields: ["username"]
-              }
-            }
           },
-        }
-      });
-      // if(findOneResult.access_controls.length === 0){
-      //   return ctx.send({message: "Please ensure no Api is in this category"});
-      // }
-      for(let i = 0; i < findOneResult.access_controls.length; i++){
-        let usernames = [];
-        findOneResult.access_controls.forEach(access_control => {
-          usernames.push(access_control.vendor_id.username);
-        })
-        const errorMessage = `Vendor ${usernames.join(', ')} have access to Api Collection ${findOneResult.api_collection_name}`;
-        console.log(errorMessage)
-        return ctx.send({message: errorMessage})
-      }
-      const deleteEntry = await strapi.entityService.delete("api::api-collection.api-collection", collectionID)
-      ctx.send({message: `Api Collection ${findOneResult.api_collection_name} is deleted`});
+          fields: ["category_name"],
+          populate: {
+            api_collections: {
+              filters: {
+                id: {
+                  $eq: id
+                }
+              },
+              fields: ["api_collection_name", "description", "short_description"],
+              populate: {
+                object_id: {
+                  fields: ["object"],
+                  populate: {
+                    attr_ids: {
+                      fields: ["attr_name", "attr_type", "attr_description"],
+                      populate: generatePopulate(maxDepth, childAttr, childAttrfields),
+                    },
+                  },
+                },
+                api_ids: {
+                  fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
+                  populate: {
+                    api_req_code_ids: {
+                      fields: ["lang_name", "api_req_code"],
+                    },
+                    api_param_ids: {
+                      fields: ["attr_name", "attr_type", "attr_description"],
+                      populate: generatePopulate(maxDepth, childParam, childParamFields),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        };
+        const contentType = strapi.contentType("api::api-category.api-category");
+  
+        const sanitizedQueryParams = await contentAPI.query(
+          ctx.query,
+          contentType
+        );
+  
+        const entities = await strapi.entityService.findMany(
+          contentType.uid,
+          sanitizedQueryParams
+        );
+  
+        const result = await contentAPI.output(entities, contentType);
+        
+        result.forEach(async (apiCategory) => {
+          removeEmptyChildArrays(apiCategory)
+          apiCategory.api_collections.forEach(async (apiCollection) => {
+            const deleteApiCollection = await strapi.entityService.delete("api::api-collection.api-collection", apiCollection.id);
+            const deleteObject = await strapi.entityService.delete("api::api-coll-obj.api-coll-obj", apiCollection.object_id.id);
+            apiCollection.object_id.attr_ids.forEach(async (attribute) => {
+              const deleteObjectAttribute = await strapi.entityService.delete("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id);
+              deleteChildAttribute(attribute);
+            })
+            apiCollection.api_ids.forEach(async (api) => {
+              const deleteApi = await strapi.entityService.delete("api::api.api", api.id)
+              api.api_req_code_ids.forEach(async (apiReqCode) => {
+                const deleteApiReqCode = await strapi.entityService.delete("api::api-req-code-lang.api-req-code-lang", apiReqCode.id);
+              })
+              api.api_param_ids.forEach(async (apiParam) => {
+                const deleteApiParam = await strapi.entityService.delete("api::api-param.api-param", apiParam.id);
+                deleteChildAttribute(apiParam);
+              })
+            })
+          })
+        });
+        ctx.send({message: "Create Api Collection Has Been Cancelled"})
     } catch (error) {
       await errorHandler(ctx, error);
     }
@@ -308,7 +361,6 @@ module.exports = {
       if(!(await checkFileContent(ctx, fileContent))) {
         return;
       }
-      console.log("here")
       const {category_name, api_collection} = ctx.request.body;
       const object = api_collection.object;
       const apis = api_collection.apis;
@@ -409,19 +461,243 @@ module.exports = {
           }
         }
       }
-      return createApiCollection.id;
+      ctx.send({id: createApiCollection.id})
     } catch (error) {
       await errorHandler(ctx, error)
     }
   },
   getFileContent: async (ctx) => {
     try {
-      const {file} = ctx.request.body;
-      console.log(file);
-      ctx.send({message: "217"});
+      const fileContent = ctx.request.body
+      console.log(fileContent.file)
+      console.log(JSON.parse(fileContent.file))
+      if(!(await checkFileContent(ctx, JSON.parse(fileContent.file)))) {
+        return;
+      }
+      const {category_name, api_collection} = JSON.parse(fileContent.file);
+      const object = api_collection.object;
+      const apis = api_collection.apis;
+      const object_attributes = object.attributes;
+
+      const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
+        filters: {
+          category_name: {
+            $eq: category_name
+          }
+        }
+      });
+      
+      const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
+        data: {
+          api_collection_name: api_collection.api_collection_name,
+          description: api_collection.api_collection_description,
+          short_description: api_collection.api_collection_short_description,
+          api_category_id: apiCategory[0].id
+        }
+      });
+
+      const createObject = await strapi.entityService.create("api::api-coll-obj.api-coll-obj", {
+        data: {
+          object: object.object_json,
+          api_collection: createApiCollection.id
+        }
+      });
+
+      for(const attribute of object_attributes) {
+        if(!attribute.child_attributes) {
+          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+            data: {
+              attr_name: attribute.attribute_name,
+              attr_type: attribute.attribute_type,
+              attr_description: attribute.attribute_description,
+              object_id: createObject.id
+            }
+          });
+        } else {
+          const childAttributesIds = await insertChildtAttributes(attribute.child_attributes, "api::api-coll-obj-attr.api-coll-obj-attr")
+          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
+            data: {
+              attr_name: attribute.attribute_name,
+              attr_type: attribute.attribute_type,
+              attr_description: attribute.attribute_description,
+              object_id: createObject.id,
+              child_attr_ids: childAttributesIds
+            }
+          });
+        }
+      }
+
+      for(const api of apis) {
+        const createApi = await strapi.entityService.create("api::api.api", {
+          data: {
+            api_name: api.api_name,
+            api_description: api.api_description,
+            api_method: api.api_method,
+            api_endpoint: api.api_endpoint,
+            api_return: api.api_return,
+            api_response_json: api.api_response_json,
+            api_collection_id: createApiCollection.id
+          }
+        });
+        const api_request_codes = api.api_request_codes;
+        for(const api_request_code of api_request_codes) {
+          const createApiRequestCode = await strapi.entityService.create("api::api-req-code-lang.api-req-code-lang", {
+            data: {
+              lang_name: api_request_code.language_name,
+              api_req_code: api_request_code.api_request_code,
+              api_id: createApi.id
+            }
+          })
+        }
+        const api_parameters = api.api_parameters;
+        for(const api_parameter of api_parameters) {
+          if(!api_parameter.child_attributes) {
+            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
+              data: {
+                attr_name: api_parameter.attribute_name,
+                attr_type: api_parameter.attribute_type,
+                attr_description: api_parameter.attribute_description,
+                api_id: createApi.id
+              }
+            });
+          } else {
+            const childAttributesIds = await insertChildtAttributes(api_parameter.child_attributes, "api::api-param.api-param")
+            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
+              data: {
+                attr_name: api_parameter.attribute_name,
+                attr_type: api_parameter.attribute_type,
+                attr_description: api_parameter.attribute_description,
+                api_id: createApi.id,
+                child_attr_ids: findChildAttributes
+              }
+            });
+          }
+        }
+      }
+      ctx.send({message: "" + createApiCollection.id})
     } catch (error) {
       await errorHandler(ctx, error)
     }
+  },
+  publishApiCollection: async (ctx) => {
+    try {
+      let {apiCollectionId} = ctx.request.body;
+      apiCollectionId = parseInt(apiCollectionId);
+      const maxDepth = 4; 
+      const childAttr = "child_attr_ids"
+      const childAttrfields = ["attr_name", "attr_type", "attr_description"];
+      const childParam = "child_attr_ids";
+      const childParamFields = ["attr_name", "attr_type", "attr_description"];
+      
+      ctx.request.query = {
+        filters: {
+          api_collections: {
+            id: {
+              $eq: apiCollectionId
+            }
+          },
+        },
+        fields: ["category_name"],
+        populate: {
+          api_collections: {
+            filters: {
+              id: {
+                $eq: apiCollectionId
+              }
+            },
+            fields: ["api_collection_name", "description", "short_description"],
+            populate: {
+              object_id: {
+                fields: ["object"],
+                populate: {
+                  attr_ids: {
+                    fields: ["attr_name", "attr_type", "attr_description"],
+                    populate: generatePopulate(maxDepth, childAttr, childAttrfields),
+                  },
+                },
+              },
+              api_ids: {
+                fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
+                populate: {
+                  api_req_code_ids: {
+                    fields: ["lang_name", "api_req_code"],
+                  },
+                  api_param_ids: {
+                    fields: ["attr_name", "attr_type", "attr_description"],
+                    populate: generatePopulate(maxDepth, childParam, childParamFields),
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const contentType = strapi.contentType("api::api-category.api-category");
+
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.query,
+        contentType
+      );
+
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+
+      const result = await contentAPI.output(entities, contentType);
+      if(result.length === 0) {
+        ctx.send({message: "Api Collection Already Created"})
+      }
+      
+      result.forEach(async (apiCategory) => {
+        removeEmptyChildArrays(apiCategory)
+        apiCategory.api_collections.forEach(async (apiCollection) => {
+          const publishApiCollection = await strapi.entityService.update("api::api-collection.api-collection", apiCollection.id, {
+            data: {
+              publishedAt: Date.now(),
+            }
+          });
+          const publishObject = await strapi.entityService.update("api::api-coll-obj.api-coll-obj", apiCollection.object_id.id, {
+            data: {
+              publishedAt: Date.now(),
+            }
+          });
+          apiCollection.object_id.attr_ids.forEach(async (attribute) => {
+            const publishObjectAttribute = await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id, {
+              data: {
+                publishedAt: Date.now(),
+              }
+            });
+            publishChildAttribute(attribute);
+          })
+          apiCollection.api_ids.forEach(async (api) => {
+            const publishApi = await strapi.entityService.update("api::api.api", api.id, {
+              data: {
+                publishedAt: Date.now(),
+              }
+            })
+            api.api_req_code_ids.forEach(async (apiReqCode) => {
+              const publishApiReqCode = await strapi.entityService.update("api::api-req-code-lang.api-req-code-lang", apiReqCode.id, {
+                data: {
+                  publishedAt: Date.now(),
+                }
+              });
+            })
+            api.api_param_ids.forEach(async (apiParam) => {
+              const publishApiParam = await strapi.entityService.update("api::api-param.api-param", apiParam.id, {
+                data: {
+                  publishedAt: Date.now(),
+                }
+              });
+              deleteChildAttribute(apiParam);
+            })
+          })
+        })
+      });
+      ctx.send({message: "Api Collection Documentation Created"})
+  } catch (error) {
+    await errorHandler(ctx, error);
+  }
   }
 };
 
@@ -612,8 +888,6 @@ async function checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema) {
 }
 
 async function findChildAttributes(attribute, childAttributesId) {
-
-
   attribute.forEach(async (child) => {
     if(!child.child_attributes) {
       const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
@@ -637,7 +911,6 @@ async function findChildAttributes(attribute, childAttributesId) {
         attr_type: attribute.attribute_type,
         attr_description: attribute.attribute_description,
         child_attr_ids: childAttributesId,
-        publishedAt: Date.now()
       }
     });
     childAttributesId = [];
@@ -646,3 +919,56 @@ async function findChildAttributes(attribute, childAttributesId) {
   return;
 }
 
+async function deleteChildAttribute(attribute) {
+  while(attribute.child_attr_ids) {
+    attribute.forEach(async (attribute) => {
+      const deleteObjectAttribute = await strapi.entityService.delete("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id);
+      deleteChildAttribute(attribute);
+    })
+  }
+}
+
+async function publishChildAttribute(attribute) {
+  while(attribute.child_attr_ids) {
+    attribute.forEach(async (attribute) => {
+      const publishObjectAttribute = await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id, {
+        data: {
+          publishedAt: Date.now(),
+        }
+      });
+      publishChildAttribute(attribute);
+    })
+  }
+}
+
+
+//for old delete api collection
+// const findOneResult = await strapi.entityService.findOne("api::api-collection.api-collection", collectionID,{
+//   fields: ['api_collection_name'],
+//   populate: {
+//     access_controls: {
+//       fields: ["status"],
+//       filters: {
+//         status: {
+//           $eq: "Approved",
+//         }
+//       },
+//       populate: {
+//         vendor_id: {
+//           fields: ["username"]
+//         }
+//       }
+//     },
+//   }
+// });
+// for(let i = 0; i < findOneResult.access_controls.length; i++){
+//   let usernames = [];
+//   findOneResult.access_controls.forEach(access_control => {
+//     usernames.push(access_control.vendor_id.username);
+//   })
+//   const errorMessage = `Vendor ${usernames.join(', ')} have access to Api Collection ${findOneResult.api_collection_name}`;
+//   console.log(errorMessage)
+//   return ctx.send({message: errorMessage})
+// }
+// const deleteEntry = await strapi.entityService.delete("api::api-collection.api-collection", collectionID)
+// ctx.send({message: `Api Collection ${findOneResult.api_collection_name} is deleted`});

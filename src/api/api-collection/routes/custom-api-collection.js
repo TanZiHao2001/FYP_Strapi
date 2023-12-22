@@ -59,6 +59,14 @@ module.exports = {
       config: {
         auth: false
       }
+    },
+    {
+      method: 'POST',
+      path: '/custom/publish-api-collection',
+      handler: CustomApiCollection.publishApiCollection,
+      config: {
+        auth: false
+      }
     }
   ]
 }
