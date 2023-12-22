@@ -77,7 +77,7 @@ module.exports = createCoreController(
       try {
         // const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
         // const accessToken = parsedCookies?.accessToken;
-        const id = ctx.params.id;
+        const id = 207;
 
         // const vendorId = await getVendorIdFromToken("accessToken", accessToken);
         // if (!vendorId) {
