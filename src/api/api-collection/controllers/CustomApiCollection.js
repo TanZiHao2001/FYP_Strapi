@@ -305,12 +305,6 @@ module.exports = {
   createWholeApiCollectionFromFile: async (ctx) => {
     try {
       const fileContent = ctx.request.body
-      // try {
-      //   const message = await checkFileContent(ctx, fileContent);
-      // } catch (error) {
-      //   console.log("here")
-      //   await errorHandler(ctx, error)
-      // }
       if(!(await checkFileContent(ctx, fileContent))) {
         return;
       }
@@ -327,7 +321,6 @@ module.exports = {
         }
       });
       
-      return 0;
       const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection.api_collection_name,
@@ -424,6 +417,15 @@ module.exports = {
         }
       }
       return api_collection;
+    } catch (error) {
+      await errorHandler(ctx, error)
+    }
+  },
+  getFileContent: async (ctx) => {
+    try {
+      const {file} = ctx.request.body;
+      console.log(file);
+      return 217;
     } catch (error) {
       await errorHandler(ctx, error)
     }
