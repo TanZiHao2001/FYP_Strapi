@@ -52,5 +52,13 @@ module.exports = {
         auth: false
       }
     },
+    {
+      method: 'POST',
+      path: '/custom/upload-file-content',
+      handler: CustomApiCollection.getFileContent,
+      config: {
+        auth: false
+      }
+    }
   ]
 }
