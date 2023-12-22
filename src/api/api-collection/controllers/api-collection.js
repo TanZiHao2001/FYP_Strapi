@@ -164,7 +164,7 @@ module.exports = createCoreController(
           // })
           removeEmptyChildArrays(items)
         });
-        return result;
+        return result[0];
       } catch (error) {
         await errorHandler(ctx, error);
       }
