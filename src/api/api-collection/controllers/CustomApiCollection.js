@@ -68,7 +68,7 @@ module.exports = {
                 },
               },
             },
-            fields: ["api_collection_name", "description"],
+            fields: ["api_collection_name", "description", "short_description"],
             publicationState: 'live',
             populate: {
               object_id: {
@@ -308,6 +308,7 @@ module.exports = {
       if(!(await checkFileContent(ctx, fileContent))) {
         return;
       }
+      console.log("here")
       const {category_name, api_collection} = ctx.request.body;
       const object = api_collection.object;
       const apis = api_collection.apis;
@@ -326,16 +327,14 @@ module.exports = {
           api_collection_name: api_collection.api_collection_name,
           description: api_collection.api_collection_description,
           short_description: api_collection.api_collection_short_description,
-          api_category_id: apiCategory[0].id,
-          publishedAt: Date.now()
+          api_category_id: apiCategory[0].id
         }
       });
 
       const createObject = await strapi.entityService.create("api::api-coll-obj.api-coll-obj", {
         data: {
           object: object.object_json,
-          api_collection: createApiCollection.id,
-          publishedAt: Date.now()
+          api_collection: createApiCollection.id
         }
       });
 
@@ -346,8 +345,7 @@ module.exports = {
               attr_name: attribute.attribute_name,
               attr_type: attribute.attribute_type,
               attr_description: attribute.attribute_description,
-              object_id: createObject.id,
-              publishedAt: Date.now()
+              object_id: createObject.id
             }
           });
         } else {
@@ -358,8 +356,7 @@ module.exports = {
               attr_type: attribute.attribute_type,
               attr_description: attribute.attribute_description,
               object_id: createObject.id,
-              child_attr_ids: childAttributesIds,
-              publishedAt: Date.now()
+              child_attr_ids: childAttributesIds
             }
           });
         }
@@ -374,8 +371,7 @@ module.exports = {
             api_endpoint: api.api_endpoint,
             api_return: api.api_return,
             api_response_json: api.api_response_json,
-            api_collection_id: createApiCollection.id,
-            publishedAt: Date.now()
+            api_collection_id: createApiCollection.id
           }
         });
         const api_request_codes = api.api_request_codes;
@@ -384,8 +380,7 @@ module.exports = {
             data: {
               lang_name: api_request_code.language_name,
               api_req_code: api_request_code.api_request_code,
-              api_id: createApi.id,
-              publishedAt: Date.now()
+              api_id: createApi.id
             }
           })
         }
@@ -397,8 +392,7 @@ module.exports = {
                 attr_name: api_parameter.attribute_name,
                 attr_type: api_parameter.attribute_type,
                 attr_description: api_parameter.attribute_description,
-                api_id: createApi.id,
-                publishedAt: Date.now()
+                api_id: createApi.id
               }
             });
           } else {
@@ -409,14 +403,13 @@ module.exports = {
                 attr_type: api_parameter.attribute_type,
                 attr_description: api_parameter.attribute_description,
                 api_id: createApi.id,
-                child_attr_ids: findChildAttributes,
-                publishedAt: Date.now()
+                child_attr_ids: findChildAttributes
               }
             });
           }
         }
       }
-      return api_collection;
+      return createApiCollection.id;
     } catch (error) {
       await errorHandler(ctx, error)
     }
@@ -495,8 +488,7 @@ async function insertChildtAttributes(attributes, contentType) {
       data: {
         attr_name: attribute_name,
         attr_type: attribute_type,
-        attr_description: attribute_description,
-        publishedAt: Date.now()
+        attr_description: attribute_description
       }
     });
 
@@ -514,26 +506,6 @@ async function insertChildtAttributes(attributes, contentType) {
     }
   }
   return insertedAttributeIds;
-}
-
-async function checkFileStructure(ctx, fileContent, schema, path = []) {
-  try {
-    for (const key in schema) {
-      // if(Array.isArray(schema[key])) console.log(schema + " " + key)
-      const expectedType = schema[key];
-      console.log(typeof expectedType + " " + key)
-      if(!fileContent) return;
-      if (!(key in fileContent) ) { //&& !fileContent
-        ctx.send({error: `Missing key \'${key}\' at path: ${path.join('.')}`});
-      } else if (typeof fileContent[key] !== typeof expectedType) {
-        ctx.send({error: `Incorrect type for key \'${key}\' at path: ${path.join('.')}. Expected ${typeof expectedType}, got ${typeof fileContent[key]}`});
-      } else if (typeof expectedType === 'object' && fileContent[key] !== null ) { //&& key.length !== 1
-        checkFileStructure(ctx, fileContent[key], schema[key], path.concat(key));
-      }
-    }
-  } catch (error) {
-    await errorHandler(ctx, error)
-  }
 }
 
 async function checkFileContent(ctx, fileContent) {
@@ -563,7 +535,9 @@ async function checkFileContent(ctx, fileContent) {
     
     //check key of attributes
     const fileContentAttribute = fileContentObject["attributes"];
-    checkChildAttributes(ctx, fileContentAttribute, schema.getSchemaObjectAttribute());
+    if(!(await checkChildAttributes(ctx, fileContentAttribute, schema.getSchemaObjectAttribute()))) {
+      return;
+    }
 
     //check key of apis
     const fileContentApi = fileContent["apis"];
@@ -586,6 +560,7 @@ async function checkFileContent(ctx, fileContent) {
           if(key === "language_name") {
             if(!(schema.getLanguageType().includes(requestCode[key]))) {
               ctx.send({error: `Language name can only be ${schema.getLanguageType()}`});
+              return;
             }
           }
         }
@@ -595,7 +570,9 @@ async function checkFileContent(ctx, fileContent) {
     //check key of api_parameters
     for(const api of fileContentApi) {
       const fileContentParameter = api["api_parameters"];
-      checkChildAttributes(ctx, fileContentParameter, schema.getSchemaApiParameter());
+      if(!(await checkChildAttributes(ctx, fileContentParameter, schema.getSchemaApiParameter()))) {
+        return;
+      }
     }
     return true;
   } catch (error) {
@@ -609,12 +586,13 @@ async function checkChildAttributes(ctx, fileContent, schema) {
   for(const key in schema) {
     for(const attribute of fileContent) {
       if(!(await checkKeyExistAndTypeOfValue(ctx, key, attribute, schema))) {
-        return;
+        return false;
       }
       if(attribute.child_attributes) {
-        checkChildAttributes(ctx, attribute.child_attributes, schema)
+        await checkChildAttributes(ctx, attribute.child_attributes, schema)
       }
     }
+    return true;
   }
 }
 
@@ -630,155 +608,6 @@ async function checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema) {
     await errorHandler(ctx, error);
     return false;
   }
-  
-}
-
-function getSchema() {
-  const schema = {
-    "category_name": "CORE RESOURCE",
-    "api_collection": {
-      "api_collection_name": "FYP API TESTING COLLECTION",
-      "api_collection_description": "This object represents a customer of your business. Use it to create recurring charges and track payments that belong to the same customer.",
-      "api_collection_short_description": "short description",
-      "object": {
-        "object_json": "FYP API TESTINGFYP API TESTINGFYP API TESTINGFYP API TESTING",
-        "attributes": [
-          {
-            "attribute_name": "FYP2",
-            "attribute_type": "hash",
-            "attribute_description": "FYP API TESTING",
-            "child_attributes": [
-              {
-                "attribute_name": "FYP21",
-                "attribute_type": "string",
-                "attribute_description": "FYP API TESTING."
-              },
-              {
-                "attribute_name": "FYP22",
-                "attribute_type": "string",
-                "attribute_description": "Two-letter country code (ISO 3166-1 alpha-2)."
-              },
-              {
-                "attribute_name": "FYP23",
-                "attribute_type": "enum",
-                "attribute_description": "Two-letter country code (ISO 3166-1 alpha-2).",
-                "child_attributes": [
-                  {
-                      "attribute_name": "enumFYP23",
-                      "attribute_type": "enum",
-                      "attribute_description": "test enum"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "attribute_name": "FYP3",
-            "attribute_type": "hash",
-            "attribute_description": "FYP API TESTING",
-            "child_attributes": [
-              {
-                "attribute_name": "FYP31",
-                "attribute_type": "hash",
-                "attribute_description": "FYP API TESTING",
-                "child_attributes": [
-                  {
-                    "attribute_name": "FYP311",
-                    "attribute_type": "string",
-                    "attribute_description": "FYP API TESTING",
-                    "child_attributes": [
-                      {
-                          "attribute_name": "FYP3111",
-                          "attribute_type": "string",
-                          "attribute_description": "FYP API TESTING"
-                      },
-                      {
-                          "attribute_name": "FYP3112",
-                          "attribute_type": "string",
-                          "attribute_description": "FYP API TESTING"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      "apis": [
-        {
-          "api_name": "FYPTESTAPI",
-          "api_description": "FYP TEST API",
-          "api_return": "Returns API TEST",
-          "api_method": "POST",
-          "api_endpoint": "/v1/fyp-test-api",
-          "api_response_json": "test api",
-          "api_request_codes": [
-            {
-              "language_name": "java",
-              "api_request_code": "java test;"
-            },
-            {
-              "language_name": "javascript",
-              "api_request_code": "javascript test;"
-            }
-          ],
-          "api_parameters": [
-            {
-              "attribute_name": "test1",
-              "attribute_type": "testdas",
-              "attribute_description": "test.",
-              "child_attributes": [
-                  {
-                      "attribute_name": "test1.1",
-                      "attribute_type": "testdas1",
-                      "attribute_description": "testapi",
-                      "child_attributes": [
-                          {
-                              "attribute_name": "test1.1.1",
-                              "attribute_type": "testdas11",
-                              "attribute_description": "testapi2"
-                          },
-                          {
-                              "attribute_name": "test1.1.2",
-                              "attribute_type": "testdas12",
-                              "attribute_description": "testapi3"
-                          }
-                      ]
-                  }
-              ]
-            },
-            {
-              "attribute_name": "test api",
-              "attribute_type": "yeesitn",
-              "attribute_description": "lorem phileo"
-            }
-          ]
-        },
-        {
-          "api_name": "FYP TEST API 2",
-          "api_description": "Retriczxczxczxct.",
-          "api_return": "Retuzdvzczxcxza deleted property that’s set to true.",
-          "api_method": "POST",
-          "api_endpoint": "/v1/fyp-test-api2",
-          "api_response_json": "{\n  \"asfsafa\n  \"livasfsadasdn}",
-          "api_request_codes": [
-            {
-              "language_name": "java",
-              "api_request_code": "Stripe.apiKey = \"sk_test_4eC39HqLyjWDarjtT1zdp7dc\";\n\nCustomer customer =\n  Customer.retrieve(\"cus_9s6XKzkNRiz8i3\");"
-            },
-            {
-              "language_name": "php",
-              "api_request_code": "php test;"
-            }
-          ],
-          "api_parameters": []
-        }
-      ]
-    }
-  }
-
-  return schema;
   
 }
 
@@ -817,67 +646,3 @@ async function findChildAttributes(attribute, childAttributesId) {
   return;
 }
 
-  // if(!attribute.child_attributes) {
-  //   const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
-  //     data: {
-  //       attr_name: attribute.attribute_name,
-  //       attr_type: attribute.attribute_type,
-  //       attr_description: attribute.attribute_description,
-  //       publishedAt: Date.now()
-  //     }
-  //   });
-  //   childAttributesId.push(createObjectAttribute.id);
-  //   return;
-  // }
-
-
-  /*
-      ALL OF THE NAMES ARE BASED ON JSON INPUT, NOT NAMED DEFINED IN STRAPI, HENCE WILL HAVE DIFFERENT NAME
-      FIRST LEVEL: api_collection (1 only)
-        ATTRIBUTES: 
-        1. api_collection_name
-        2. api_collection_description
-        3. api_category_id (this is apiCategory[0].id)
-
-      SECOND LEVEL PART 1: object (1 only)
-        ATTRIBUTES:
-        1. object_json
-        2. api_collection_id (this can be obtained after creating api_collection)
-
-        THIRD LEVEL FOR SECOND PART 1: attributes (an array of attributes)
-        ATTRIBUTES:
-        1. attribute_name
-        2. attribute_type,
-        3. attribute_description
-        *4. object_id (this can be obtained after creating object) (NOTE: this is only needed for the first level, for its child does not need this attribute)
-        ***
-        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
-        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
-        ***
-
-      SECOND LEVEL PART 2: apis (an array of apis)
-        ATTRIBUTES:
-        1. api_name
-        2. api_description
-        3. api_return
-        4. api method
-        5. api_endpoint
-        6. api_response_json
-        7. api_collection_id (this can be obtained after creating api_collection)
-
-        THIRD LEVEL FOR SECOND PART 2 (PART 1): api_parameters (an array of api_parameters)
-        ATTRIBUTES:
-        1. attribute_name
-        2. attribute_type,
-        3. attribute_description
-        *4. api_id (this can be obtained after creating api) (NOTE: this is only needed for the first level, for its child does not need this attribute)
-        ***
-        5. enums? (check if enums is available, if yes will have a sub level of this attribute object)
-        6. child_attributes? (check if child_attributes is available, if yes will have a sub level of this attribute object)
-        ***
-      
-        THIRD LEVEL FOR SECOND PART 2 (PART 2): api_request_codes (an array of api_request_codes)
-        ATTRIBUTES:
-        1. language_name (java, python, go, http, javascript, php, ruby)
-        2. api_request_code
-      */
