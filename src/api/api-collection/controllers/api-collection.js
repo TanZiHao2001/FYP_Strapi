@@ -73,5 +73,24 @@ module.exports = createCoreController(
         await errorHandler(ctx, error);
       }
     },
+    async findOne(ctx) {
+      try {
+        // const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+        // const accessToken = parsedCookies?.accessToken;
+        const id = ctx.params.id;
+
+        // const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+        // if (!vendorId) {
+        //   throw createError.Unauthorized();
+        // }
+
+        const result = await strapi.entityService.findOne("api::api-collection.api-collection", id, {
+        });
+
+        return result;
+      } catch (error) {
+
+      }
+    }
   })
 );
