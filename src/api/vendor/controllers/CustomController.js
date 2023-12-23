@@ -450,11 +450,11 @@ module.exports = {
       const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
       console.log(createIds);
 
-      removeIds.forEach(async (id)=>{
+      for(const id of removeIds) {
         await strapi.entityService.delete("api::access-control.access-control", id)
-      })
-
-      createIds.forEach(async (id)=>{
+      }
+      
+      for(const id of createIds) {
         await strapi.entityService.create("api::access-control.access-control", {
           data: {
             vendor_id: vendor_id,
@@ -463,7 +463,8 @@ module.exports = {
             publishedAt: Date.now(),
           }
         }) 
-      })
+      }
+      
       return ctx.send({message: "Access control edited"});
     } catch (error) {
       await errorHandler(ctx, error)

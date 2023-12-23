@@ -72,12 +72,13 @@ module.exports = {
                     currMonthDate.push(currentMonthCalendar[i][j].date)
                 }
             }
-            announcement.sort((a, b) => {
+            filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
+            let filteredAnnouncement = announcement.filter(item => item !== null);
+            filteredAnnouncement.sort((a, b) => {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
             })
-            filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
-            let filteredAnnouncement = announcement.filter(item => item !== null);
+            
             const formattedDates = currentMonthCalendar.map(innerArray =>
                 innerArray.map(obj => (new Date(obj.date).toDateString()))
               );
