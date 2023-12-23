@@ -58,6 +58,7 @@ module.exports = {
         }
     },
     getAnnouncementEventList: async (ctx) => {
+        //this function may need to be remodified if wants to handle announcement time as well
         try{
             const {year, month} = ctx.request.body
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
@@ -72,18 +73,22 @@ module.exports = {
                     currMonthDate.push(currentMonthCalendar[i][j].date)
                 }
             }
+
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
             let filteredAnnouncement = announcement.filter(item => item !== null);
             filteredAnnouncement.sort((a, b) => {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
             })
-            
+            console.log(filteredAnnouncement)
             const formattedDates = currentMonthCalendar.map(innerArray =>
                 innerArray.map(obj => (new Date(obj.date).toDateString()))
               );
             loop1: for(let i = 0; i < 3; i++) { // level 0, 1, 2
                 for(let j = 0; j < filteredAnnouncement.length; j++) { // index for announcement
+                    if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[0]).getTime()) {
+                        filteredAnnouncement[j].startDate = new Date(currMonthDate[0]);
+                    }
                     const startYear = new Date(filteredAnnouncement[j].startDate).getFullYear();
                     const startMonth = new Date(filteredAnnouncement[j].startDate).getMonth();
                     const startDate = new Date(filteredAnnouncement[j].startDate).getDate();
@@ -93,10 +98,12 @@ module.exports = {
                     loop3: for(let k = 0; k < currMonthDate.length; k++) { // index for currMonthDate
                         // 2023 12 2 vs 2023 12 3
                         // check if the startDate for current announcement is already earlier than the current checking date
-                        if( (startMonth < new Date(currMonthDate[k]).getMonth()) || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
-                            break loop3;
-                        };
-                        // check if startDate for current announcement matches the current checking date  
+                        if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
+                        // if( (startMonth < new Date(currMonthDate[k]).getMonth() && startYear === new Date(currMonthDate[k]).getFullYear()) 
+                        // || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
+                        //     break loop3;
+                        // };
+                        // check if startDate for current announcement matches the current checking date 
                         if(startYear === new Date(currMonthDate[k]).getFullYear() && startMonth === new Date(currMonthDate[k]).getMonth() && startDate === new Date(currMonthDate[k]).getDate()) {
                             let rowIndex = formattedDates.findIndex(
                                 innerArray => innerArray.includes(new Date(startYear, startMonth, startDate, 8).toDateString()));
@@ -144,6 +151,24 @@ module.exports = {
                                 //calculate the number of days
                                 let diffDay = Math.ceil((new Date(filteredAnnouncement[j].endDate) - new Date(filteredAnnouncement[j].startDate))
                                                 / (24 * 60 * 60 * 1000));
+                                //handle rare case for diffDay === 1 and involves different weeks
+                                if(diffDay === 1 && columnIndex === 7) {
+                                    result[rowIndex][--columnIndex][i].isEnd = true;
+                                    result[++rowIndex][0].push(
+                                        {
+                                            clickResponse: filteredAnnouncement[j].id,
+                                            title: filteredAnnouncement[j].title,
+                                            isStart: true,
+                                            isEnd: true,
+                                            color: filteredAnnouncement[j].color,
+                                            level: i
+                                        }
+                                    )
+                                    const checkLength = filteredAnnouncement.length;
+                                    filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
+                                    if(filteredAnnouncement.length !== checkLength) j--;
+                                    break loop3;
+                                }
                                 //check if columnIndex out of bounds (already reach end of week) and 
                                 //check if haven't reach endDate of annoucement
                                 if(columnIndex > 6 && diffDay > 1){
@@ -227,6 +252,7 @@ module.exports = {
                                 const checkLength = filteredAnnouncement.length;
                                 filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                 if(filteredAnnouncement.length !== checkLength) j--;
+                                break loop3;
                             }
                         }
                     }
@@ -390,6 +416,10 @@ module.exports = {
 
   function filterAnnouncementByCurrentMonthYear(announcement, currentMonthCalendar) {
     for(let i = 0; i < announcement.length; i++) {
+        if(currentMonthCalendar.some(date => {
+            return date.getTime() <= new Date(announcement[i].endDate).getTime() 
+            && date.getTime() >= new Date(announcement[i].startDate).getTime()
+        })) continue;
         if(new Date(announcement[i].startDate) < new Date(currentMonthCalendar[0]) ||
         new Date(announcement[i].startDate) > new Date(currentMonthCalendar[currentMonthCalendar.length - 1])) {
             delete announcement[i];
