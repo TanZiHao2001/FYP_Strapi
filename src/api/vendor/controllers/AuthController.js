@@ -229,7 +229,7 @@ module.exports = {
       const verifyToken = await signToken("verifyToken", entry.id);
       setToken(ctx, "verifyToken", verifyToken);
 
-      ctx.send({message: "Vendor created"});
+      ctx.send({message: "Account has been created, an activation email will be sent once approved by admin"});
     } catch (error) {
       await errorHandler(ctx, error)
     }
