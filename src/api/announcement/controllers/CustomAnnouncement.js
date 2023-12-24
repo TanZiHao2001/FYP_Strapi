@@ -128,10 +128,11 @@ module.exports = {
                                 );
                                 filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                 j--;
-                                columnIndex = (columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
-                                if(rowIndex > 5) {
-                                    break loop3;
-                                }
+                                break loop3;
+                                // columnIndex = (columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
+                                // if(rowIndex > 5) {
+                                //     break loop3;
+                                // }
                             } 
                             //startDate and endDate of current announcement are not same, means more than 1 day
                             else {
@@ -153,8 +154,13 @@ module.exports = {
                                                 / (24 * 60 * 60 * 1000));
                                 //handle rare case for diffDay === 1 and involves different weeks
                                 if(diffDay === 1 && columnIndex === 7) {
-                                    result[rowIndex][--columnIndex][i].isEnd = true;
-                                    result[++rowIndex][0].push(
+                                    console.log("here")
+                                    console.log(i)
+                                    console.log(result[rowIndex][columnIndex-1][result[rowIndex][columnIndex-1].length-1])
+                                    result[rowIndex][--columnIndex][result[rowIndex][columnIndex].length-1].isEnd = true;
+                                    columnIndex = 0;
+                                    if(rowIndex === 5) break loop3
+                                    result[++rowIndex][columnIndex++].push(
                                         {
                                             clickResponse: filteredAnnouncement[j].id,
                                             title: filteredAnnouncement[j].title,
@@ -164,10 +170,12 @@ module.exports = {
                                             level: i
                                         }
                                     )
-                                    const checkLength = filteredAnnouncement.length;
+                                    // const checkLength = filteredAnnouncement.length;
                                     filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
-                                    if(filteredAnnouncement.length !== checkLength) j--;
+                                    j--;
                                     break loop3;
+                                    // if(filteredAnnouncement.length !== checkLength) j--;
+                                    // break loop3;
                                 }
                                 //check if columnIndex out of bounds (already reach end of week) and 
                                 //check if haven't reach endDate of annoucement
@@ -209,7 +217,6 @@ module.exports = {
                                             level: i
                                         }
                                     );
-                                    
                                     if(columnIndex > 6 && diffDay > 1){
                                         result[rowIndex][--columnIndex][result[rowIndex][columnIndex].length - 1].isEnd = true;
                                         columnIndex = 0;
@@ -229,6 +236,14 @@ module.exports = {
                                             }
                                         );
                                         diffDay--;
+                                        if(diffDay === 1) {
+                                            result[rowIndex][columnIndex-1][result[rowIndex][columnIndex-1].length-1].isEnd = true;
+                                            const checkLength = filteredAnnouncement.length;
+                                            filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
+                                            if(filteredAnnouncement.length !== checkLength) j--;
+                                            break loop3;
+                                            
+                                        }
                                     }
                                     else if(columnIndex > 6) {
                                         ++rowIndex;
@@ -236,6 +251,7 @@ module.exports = {
                                     }
 
                                     if(rowIndex > 5) {
+                                        j--
                                         break loop3;
                                     }
                                     diffDay--;
