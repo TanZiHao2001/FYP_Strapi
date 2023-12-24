@@ -80,7 +80,6 @@ module.exports = {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
             })
-            console.log(filteredAnnouncement)
             const formattedDates = currentMonthCalendar.map(innerArray =>
                 innerArray.map(obj => (new Date(obj.date).toDateString()))
               );
@@ -95,8 +94,7 @@ module.exports = {
                     const endYear = new Date(filteredAnnouncement[j].endDate).getFullYear();
                     const endMonth = new Date(filteredAnnouncement[j].endDate).getMonth();
                     const endDate = new Date(filteredAnnouncement[j].endDate).getDate();
-                    loop3: for(let k = 0; k < currMonthDate.length; k++) { // index for currMonthDate
-                        // 2023 12 2 vs 2023 12 3
+                    loop3: for(let k = 0; k < currMonthDate.length; k++) {
                         // check if the startDate for current announcement is already earlier than the current checking date
                         if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
                         // if( (startMonth < new Date(currMonthDate[k]).getMonth() && startYear === new Date(currMonthDate[k]).getFullYear()) 
@@ -129,10 +127,6 @@ module.exports = {
                                 filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                 j--;
                                 break loop3;
-                                // columnIndex = (columnIndex > 6) ? (++rowIndex, 0) : columnIndex;
-                                // if(rowIndex > 5) {
-                                //     break loop3;
-                                // }
                             } 
                             //startDate and endDate of current announcement are not same, means more than 1 day
                             else {
@@ -154,9 +148,6 @@ module.exports = {
                                                 / (24 * 60 * 60 * 1000));
                                 //handle rare case for diffDay === 1 and involves different weeks
                                 if(diffDay === 1 && columnIndex === 7) {
-                                    console.log("here")
-                                    console.log(i)
-                                    console.log(result[rowIndex][columnIndex-1][result[rowIndex][columnIndex-1].length-1])
                                     result[rowIndex][--columnIndex][result[rowIndex][columnIndex].length-1].isEnd = true;
                                     columnIndex = 0;
                                     if(rowIndex === 5) break loop3
@@ -170,12 +161,9 @@ module.exports = {
                                             level: i
                                         }
                                     )
-                                    // const checkLength = filteredAnnouncement.length;
                                     filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                     j--;
                                     break loop3;
-                                    // if(filteredAnnouncement.length !== checkLength) j--;
-                                    // break loop3;
                                 }
                                 //check if columnIndex out of bounds (already reach end of week) and 
                                 //check if haven't reach endDate of annoucement
@@ -242,7 +230,6 @@ module.exports = {
                                             filteredAnnouncement = filteredAnnouncement.filter(item => (item !== filteredAnnouncement[j]));
                                             if(filteredAnnouncement.length !== checkLength) j--;
                                             break loop3;
-                                            
                                         }
                                     }
                                     else if(columnIndex > 6) {
