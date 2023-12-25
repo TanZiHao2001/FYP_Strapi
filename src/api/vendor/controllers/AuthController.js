@@ -117,6 +117,21 @@ function setToken(ctx, key, value) {
   });
 }
 
+function getAbbreviation(userName) {
+  const words = userName.split(' ');
+  let abbreviation = '';
+
+  for (const word of words) {
+    if (word.length > 0) {
+      abbreviation += word[0].toUpperCase();
+    }
+    if (abbreviation.length > 1) {
+      break;
+    }
+  }
+  return abbreviation;
+}
+
 module.exports = {
   refreshToken: async (ctx) => {
     try {
@@ -151,7 +166,7 @@ module.exports = {
         emailList = JSON.parse(process.env.ADMIN_EMAIL);
         passwordList = JSON.parse(process.env.ADMIN_PASSWORD);
       }
-      
+
       for(let i = 0; i < emailList.length; i++) {
         if(email === emailList[i] && password === passwordList[i]) {
           const accessToken = await signToken("accessToken", 0, "ROLE_ADMIN");
@@ -183,7 +198,13 @@ module.exports = {
 
       const accessToken = await signToken("accessToken", entry.id, "ROLE_VENDOR");
       const refreshToken = await signToken("refreshToken", entry.id);
-
+      ctx.cookies.set('abbre', getAbbreviation(entry.username), {
+        httpOnly: false,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * 1000,
+        path: "/",
+      });
       setToken(ctx, "accessToken", accessToken);
       setToken(ctx, "refreshToken", refreshToken);
 
@@ -270,7 +291,7 @@ module.exports = {
       if(user.publishedAt === null){
         throw new Error("Account has been blocked, please contact admin");
       }
-      
+
       await strapi.entityService.update("api::vendor.vendor", id, {
         data: {
           password: password,
@@ -324,6 +345,15 @@ module.exports = {
         path: "/",
       });
 
+      ctx.cookies.set("abbre", null, {
+        httpOnly: false,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 0,
+        expires: new Date(0),
+        path: "/",
+      });
+
       ctx.send({message: "logout successful"});
     } catch (error) {
       await errorHandler(ctx, error)
@@ -345,7 +375,7 @@ module.exports = {
       const token_result = await getVendorIdFromToken("accessToken", accessToken);
       const role = token_result === "ROLE_ADMIN" ? token_result : "ROLE_VENDOR";
       const isAuthenticated = token_result ? true : false;
-      
+
       return {role: role, isAuthenticated: isAuthenticated};
 
     } catch (error) {
@@ -435,7 +465,7 @@ module.exports = {
           console.log("Email sent:", info.response);
         }
       });
-      
+
       const entry = await strapi.entityService.update('api::vendor.vendor', result[0].id, {
         data: {
           status: "Approved",
