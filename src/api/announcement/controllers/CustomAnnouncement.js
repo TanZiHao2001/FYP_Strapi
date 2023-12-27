@@ -273,15 +273,26 @@ module.exports = {
             if(ctx.request.body.id) {
                 id = ctx.request.body.id; 
             }
+            
             if(id) { 
-                const findExist = await strapi.entityService.findMany("api::announcement.announcement", {
+                const findExist = await strapi.entityService.findOne("api::announcement.announcement", id);
+                if(!findExist) {
+                    return ctx.send({error: "Announcement not found!"});
+                }
+
+                const checkTitleName = await strapi.entityService.findMany("api::announcement.announcement", {
                     filters: {
-                        id: {
-                            $eq: id
+                        title: {
+                            $eq: title
                         }
                     }
-                });
-                const updateEntry = await strapi.entityService.update("api::announcement.announcement", findExist[0].id, {
+                })
+                
+                if(checkTitleName.length > 0 && checkTitleName[0].title !== findExist.title) {
+                    return ctx.send({error: `Announcement title ${title} already exist!`});
+                }
+
+                const updateEntry = await strapi.entityService.update("api::announcement.announcement", id, {
                     data: {
                         title: title,
                         description: description,
@@ -293,6 +304,7 @@ module.exports = {
                 });
                 return ctx.send({message: `Announcement ${updateEntry.title} has been updated`});
             }
+
             const checkTitle = await strapi.entityService.findMany("api::announcement.announcement", {
                 filters: {
                     title: {
@@ -303,6 +315,7 @@ module.exports = {
             if(checkTitle.length > 0) {
                 return ctx.send({error: `Announcement title ${title} already exist!`})
             }
+
             const entry = await strapi.entityService.create("api::announcement.announcement", {
                 data: {
                     title: title,
@@ -349,7 +362,7 @@ module.exports = {
             tempResult.upcoming.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
             tempResult.expired.sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
     
-            const finalResult = [...tempResult.active, ...tempResult.upcoming, ...tempResult.expired].map(({ id, title, description, startDate, endDate, color }) => ({
+            const finalResult = [...tempResult.upcoming].map(({ id, title, description, startDate, endDate, color }) => ({
                 id,
                 title,
                 description,
@@ -357,6 +370,7 @@ module.exports = {
                 endDate,
                 color
             }));
+
             return finalResult.slice(0, 5);
         } catch (error) {
             await errorHandler(ctx, error)
