@@ -7,6 +7,14 @@ module.exports = {
     {
         method: 'GET',
         path: '/custom/get-all-api-category/:char',
+        handler: CustomApiCategory.getAllApiCategoryByChar,
+        config: {
+            auth: false
+        }
+    },
+    {
+        method: 'GET',
+        path: '/custom/get-all-api-category',
         handler: CustomApiCategory.getAllApiCategory,
         config: {
             auth: false

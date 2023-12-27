@@ -137,6 +137,108 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  getOneapiCollection: async (ctx) => {
+    try {
+      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+      const accessToken = parsedCookies.accessToken;
+      if (!accessToken) {
+        throw createError.Unauthorized();
+      }
+
+      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+      if (!vendorId) {
+        throw createError.Unauthorized();
+      }
+
+      const {apiCollectionId, programmingLanguage} = ctx.request.body;
+      const maxDepth = 4; 
+      const childAttr = "child_attr_ids"
+      const childAttrfields = ["attr_name", "attr_type", "attr_description"];
+      const childParam = "child_attr_ids";
+      const childParamFields = ["attr_name", "attr_type", "attr_description"];
+      const getApiCategoryId = await strapi.entityService.findOne("api::api-collection.api-collection", apiCollectionId); 
+      ctx.request.query = {
+        fields: ["category_name"],
+        publicationState: 'live',
+        filters: {
+          id: {
+            $eq: getApiCategoryId.api_category_id
+          }
+        },
+        populate: {
+          api_collections: {
+            filters: {
+              id: {
+                $eq: apiCollectionId
+              }
+            },
+            fields: ["api_collection_name", "description"],
+            publicationState: 'live',
+            populate: {
+              object_id: {
+                fields: ["object"],
+                publicationState: 'live',
+                populate: {
+                  attr_ids: {
+                    fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
+                    populate: generatePopulate(maxDepth, childAttr, childAttrfields),
+                  },
+                },
+              },
+              api_ids: {
+                fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
+                publicationState: 'live',
+                populate: {
+                  api_req_code_ids: {
+                    filters: {
+                      lang_name: programmingLanguage,
+                    },
+                    fields: ["lang_name", "api_req_code"],
+                    publicationState: 'live',
+                  },
+                  api_param_ids: {
+                    fields: ["attr_name", "attr_type", "attr_description"],
+                    publicationState: 'live',
+                    populate: generatePopulate(maxDepth, childParam, childParamFields),
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const contentType = strapi.contentType("api::api-category.api-category");
+
+      const sanitizedQueryParams = await contentAPI.query(
+        ctx.query,
+        contentType
+      );
+
+      const entities = await strapi.entityService.findMany(
+        contentType.uid,
+        sanitizedQueryParams
+      );
+
+      const result = await contentAPI.output(entities, contentType);
+      if (result.length === 0) {
+        return ctx.send([]);
+      }
+      const firstResult = result[0];
+      firstResult.api_collections.forEach((api_collection) => {
+        api_collection.api_ids.forEach((api_id) => {
+            api_id.api_req_code_ids.forEach((api_req_code_id) => {
+              api_id.lang_name = api_req_code_id.lang_name;
+              api_id.api_req_code = api_req_code_id.api_req_code;
+            })
+        })
+        removeEmptyChildArrays(api_collection)
+      });
+      return firstResult;
+    } catch (error) {
+      await errorHandler(ctx, error);
+    }
+  },
   subscribedApiCollection: async (ctx) => {
     try {
       const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
