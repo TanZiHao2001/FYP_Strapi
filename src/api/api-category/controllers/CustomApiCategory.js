@@ -7,7 +7,7 @@ const { errorHandler } = require("../../error_helper");
 const { chromeuxreport } = require("googleapis/build/src/apis/chromeuxreport");
 
 module.exports = {
-    getAllApiCategory: async (ctx) => {
+    getAllApiCategoryByChar: async (ctx) => {
         try {
           const char = ctx.params.char
           ctx.request.query = {
@@ -61,9 +61,54 @@ module.exports = {
           await errorHandler(ctx, error)
         }
     },
+    getAllApiCategory: async (ctx) => {
+      try {
+        ctx.request.query = {
+          fields: ['category_name', 'image_url'],
+          publicationState: 'live',
+          populate: {
+            api_collections: {
+              fields: ['api_collection_name', 'createdAt', 'short_description'],
+              publicationState: 'live',
+              populate: {
+                api_ids: {
+                  fields: ['id'],
+                }
+              }
+            }
+          }
+        }
+        const contentType = strapi.contentType("api::api-category.api-category");
+  
+        const sanitizedQueryParams = await contentAPI.query(
+          ctx.query,
+          contentType
+        );
+  
+        const entities = await strapi.entityService.findMany(
+          contentType.uid,
+          sanitizedQueryParams
+        );
+  
+        const result = await contentAPI.output(entities, contentType);
+
+        const sortedResult = result.sort((a, b) => {
+          const nameA = a.category_name.toLowerCase();
+          const nameB = b.category_name.toLowerCase();
+          return nameA.localeCompare(nameB);
+      });
+  
+        return sortedResult;
+      } catch (error) {
+        await errorHandler(ctx, error)
+      }
+    },
     createApiCategory: async (ctx) => {
         try {
           const {category_name, image_url} = ctx.request.body;
+          if(!isNameValid(category_name)) {
+            return ctx.send({error: `${category_name} is not a valid name, please start with a letter`})
+          }
           const entry = await strapi.entityService.create("api::api-category.api-category", {
             data: {
               category_name: category_name,
@@ -123,4 +168,9 @@ module.exports = {
         await errorHandler(ctx, error);
       }
     },
+}
+
+function isNameValid(name) {
+  const startsWithLetter = /^[a-zA-Z]/.test(name);
+  return startsWithLetter;
 }

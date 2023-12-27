@@ -366,7 +366,9 @@ module.exports = {
 
       let userCurrentAccess = [];
       userInfo.access_controls.forEach((access_control) => {
-        userCurrentAccess.push(access_control.api_collection_id.id)
+        if(access_control.api_collection_id) {
+          userCurrentAccess.push(access_control.api_collection_id.id)
+        }
       })
       ctx.request.query = {
         fields: ['category_name', 'image_url'],
@@ -442,12 +444,18 @@ module.exports = {
 
       //prepare access control id for delete
       const revokeSet = new Set(revoke);
-      const filteredArray = userInfo.access_controls.filter(obj => revokeSet.has(obj.api_collection_id.id));
+      // const filteredArray = userInfo.access_controls.filter(obj => revokeSet.has(obj.api_collection_id.id));
+      const filteredArray = userInfo.access_controls.filter(obj => obj.api_collection_id?.id && revokeSet.has(obj.api_collection_id.id));
       const removeIds = filteredArray.map(obj => obj.id);
       
       //prepare api collection id for create
       const processedIds = new Set();
-      const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
+      // const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
+      const createIds = give.filter(givenId => 
+        !processedIds.has(givenId) && 
+        !userInfo.access_controls.some(obj => obj.api_collection_id?.id === (processedIds.add(givenId), givenId))
+      );
+      
       console.log(createIds);
 
       for(const id of removeIds) {
