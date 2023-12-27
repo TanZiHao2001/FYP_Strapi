@@ -3,7 +3,6 @@ module.exports = {
         // const schema = ["category_name", "api_collection"]
         const schema = 
         {
-            category_name: "string",
             api_collection: "object"
         }
         return schema;

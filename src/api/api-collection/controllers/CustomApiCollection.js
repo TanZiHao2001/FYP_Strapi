@@ -474,25 +474,29 @@ module.exports = {
       if(!(await checkFileContent(ctx, JSON.parse(fileContent.file)))) {
         return;
       }
-      const {category_name, api_collection} = JSON.parse(fileContent.file);
+      const {api_collection} = JSON.parse(fileContent.file);
       const object = api_collection.object;
       const apis = api_collection.apis;
       const object_attributes = object.attributes;
 
-      const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
-        filters: {
-          category_name: {
-            $eq: category_name
-          }
-        }
-      });
+      const apiCategory = await strapi.entityService.findOne("api::api-category.api-category", ctx.request.body.categoryId)
+      if(!apiCategory) {
+        ctx.send({error: "Api Category Does Not Exist!"});
+      }
+      // const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
+      //   filters: {
+      //     category_name: {
+      //       $eq: category_name
+      //     }
+      //   }
+      // });
       
       const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection.api_collection_name,
           description: api_collection.api_collection_description,
           short_description: api_collection.api_collection_short_description,
-          api_category_id: apiCategory[0].id
+          api_category_id: apiCategory.id
         }
       });
 
