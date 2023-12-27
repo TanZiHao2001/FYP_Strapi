@@ -293,6 +293,16 @@ module.exports = {
                 });
                 return ctx.send({message: `Announcement ${updateEntry.title} has been updated`});
             }
+            const checkTitle = await strapi.entityService.findMany("api::announcement.announcement", {
+                filters: {
+                    title: {
+                        $eq: title
+                    }
+                }
+            });
+            if(checkTitle.length > 0) {
+                return ctx.send({error: `Announcement title ${title} already exist!`})
+            }
             const entry = await strapi.entityService.create("api::announcement.announcement", {
                 data: {
                     title: title,
