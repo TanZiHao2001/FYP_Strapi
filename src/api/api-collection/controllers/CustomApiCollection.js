@@ -159,7 +159,6 @@ module.exports = {
       const getApiCategoryId = await strapi.entityService.findOne("api::api-collection.api-collection", apiCollectionId); 
       ctx.request.query = {
         fields: ["category_name"],
-        publicationState: 'live',
         filters: {
           id: {
             $eq: getApiCategoryId.api_category_id
@@ -173,34 +172,28 @@ module.exports = {
               }
             },
             fields: ["api_collection_name", "description"],
-            publicationState: 'live',
             populate: {
               object_id: {
                 fields: ["object"],
-                publicationState: 'live',
                 populate: {
                   attr_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
-                    publicationState: 'live',
-                    populate: generatePopulate(maxDepth, childAttr, childAttrfields),
+                    populate: generatePopulateForDraft(maxDepth, childAttr, childAttrfields),
                   },
                 },
               },
               api_ids: {
                 fields: ["api_name", "api_description", "api_return", "api_method", "api_endpoint", "api_response_json"],
-                publicationState: 'live',
                 populate: {
                   api_req_code_ids: {
                     filters: {
                       lang_name: programmingLanguage,
                     },
                     fields: ["lang_name", "api_req_code"],
-                    publicationState: 'live',
                   },
                   api_param_ids: {
                     fields: ["attr_name", "attr_type", "attr_description"],
-                    publicationState: 'live',
-                    populate: generatePopulate(maxDepth, childParam, childParamFields),
+                    populate: generatePopulateForDraft(maxDepth, childParam, childParamFields),
                   },
                 },
               },
@@ -585,6 +578,17 @@ module.exports = {
       if(!apiCategory) {
         ctx.send({error: "Api Category Does Not Exist!"});
       }
+
+      const checkApiCollectionName = await strapi.entityService.findMany("api::api-collection.api-collection", {
+        filters: {
+          api_collection_name: { 
+            $eq: api_collection.api_collection_name
+          }
+        }
+      })
+      if(checkApiCollectionName.length > 0) {
+        return ctx.send({error: `${checkApiCollectionName[0].api_collection_name} already exist, please change to a different name`})
+      }
       // const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
       //   filters: {
       //     category_name: {
@@ -850,6 +854,27 @@ function generatePopulate(depth, foreignKey, fields) {
       enum_ids: {
         fields: ["enum_name", "enum_description"],
         publicationState: 'live',
+      },
+      [foreignKey]: {
+        fields,
+      },
+      populate: generatePopulate(depth - 1, foreignKey, fields)
+    }
+  };
+  return populateObject;
+}
+
+function generatePopulateForDraft(depth, foreignKey, fields) {
+  if (depth <= 0) {
+    return {};
+  }
+
+  const populateObject = {};
+  populateObject[foreignKey] = {
+    fields,
+    populate: {
+      enum_ids: {
+        fields: ["enum_name", "enum_description"]
       },
       [foreignKey]: {
         fields,
