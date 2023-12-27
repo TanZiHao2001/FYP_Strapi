@@ -13,6 +13,14 @@ module.exports = {
       }
     },
     {
+      method: 'POST',
+      path: '/custom/api-collections',
+      handler: CustomApiCollection.getOneapiCollection,
+      config: {
+        auth: false,
+      }
+    },
+    {
       method: 'GET',
       path: '/custom/subscribed-api-collection',
       handler: CustomApiCollection.subscribedApiCollection,
