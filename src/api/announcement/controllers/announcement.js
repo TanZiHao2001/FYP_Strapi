@@ -21,7 +21,7 @@ module.exports = createCoreController(
         ctx.request.body.year = 2023;
         const announcement = await customAnnouncement.getAnnouncementEventList(ctx);
         const currentCalendarMonth = getCurrentMonthCalendar(ctx.request.body.year, ctx.request.body.month);
-        const timeNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+        const timeNow = new Date(Date.now()); //+ 8 * 60 * 60 * 1000
         const timeNowString = timeNow.toISOString();
         const [date, time] = timeNowString.split("T")
         const formattedDates = currentCalendarMonth.map(innerArray =>
@@ -35,33 +35,6 @@ module.exports = createCoreController(
           const todayAnnouncementContent = await strapi.entityService.findOne("api::announcement.announcement", announcement[rowIndex][columnIndex][i].clickResponse);
           todayAnnouncement.push(todayAnnouncementContent);
         }
-        // ctx.request.query = {
-        //   fields: ["announcement_text", "createdAt", "startDate"],
-        //   publicationState: 'live',
-        // };
-
-        // const contentType = strapi.contentType(
-        //   "api::announcement.announcement"
-        // );
-
-        // const sanitizedQueryParams = await contentAPI.query(
-        //   ctx.query,
-        //   contentType
-        // );
-        // const entities = await strapi.entityService.findMany(
-        //   contentType.uid,
-        //   sanitizedQueryParams
-        // );
-        // const result = await contentAPI.output(entities, contentType);
-
-        // if (result.length > 0) {
-        //   result.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-        //   result.forEach((item) => {
-        //     delete item.id
-        //   });
-        // } else {
-        //   result[0] = {"announcement_text": null};
-        // }
 
         return todayAnnouncement;
       } catch (error) {
