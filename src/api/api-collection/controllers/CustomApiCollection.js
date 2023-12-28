@@ -156,12 +156,18 @@ module.exports = {
       const childAttrfields = ["attr_name", "attr_type", "attr_description"];
       const childParam = "child_attr_ids";
       const childParamFields = ["attr_name", "attr_type", "attr_description"];
-      const getApiCategoryId = await strapi.entityService.findOne("api::api-collection.api-collection", apiCollectionId); 
+      const getApiCategoryId = await strapi.entityService.findOne("api::api-collection.api-collection", apiCollectionId, {
+        populate: {
+          api_category_id: {
+            fields: ["category_name"]
+          }
+        }
+      });
       ctx.request.query = {
         fields: ["category_name"],
         filters: {
           id: {
-            $eq: getApiCategoryId.api_category_id
+            $eq: getApiCategoryId.api_category_id.id
           }
         },
         populate: {
