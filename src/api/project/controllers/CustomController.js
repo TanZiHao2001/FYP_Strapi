@@ -247,9 +247,9 @@ module.exports = {
         throw createError.Forbidden();
       }
 
-      if(!project_name && !description){
-        throw createError.UnprocessableEntity("Please ensure at least one field is filled!");
-      }
+      // if(!project_name && !description){
+      //   throw createError.UnprocessableEntity("Please ensure at least one field is filled!");
+      // }
 
       const projectDetails = await strapi.entityService.findOne('api::project.project', projectId, {
         fields: ["project_name", "description"]
@@ -278,18 +278,30 @@ module.exports = {
 
       const {project_id} = ctx.request.body;
 
-      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
+      const db_vendorId = await strapi.entityService.findOne('api::project.project', project_id, {
         filters: {
-          id: project_id,
           status: "Approved",
           vendor: {
             id: vendorId,
           },
         },
+        populate: {
+          tokens: {
+            fields: ["expiration_date"]
+          }
+        }
       });
 
-      if (db_vendorId.length === 0) {
+      if (!db_vendorId) {
         throw createError.Forbidden();
+      }
+
+      if (db_vendorId.tokens.length > 0) {
+        for (const token of db_vendorId.tokens) {
+          if(Date.now() < new Date(token.expiration_date).getTime()) {
+            return ctx.send({"error": "A token is currently active for this project. Check with admin if you did not request it"})
+          }
+        }
       }
 
       const oneDayInMS = 24 * 60 * 60 * 1000
