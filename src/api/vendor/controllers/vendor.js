@@ -7,7 +7,7 @@
 const {sanitize} = require('@strapi/utils')
 const {contentAPI} = sanitize;
 const {createCoreController} = require('@strapi/strapi').factories;
-const {getVendorIdFromToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, checkAccessVendor} = require("../../jwt_helper");
 const createError = require("http-errors");
 const cookie = require("cookie");
 const {errorHandler} = require("../../error_helper");
@@ -15,10 +15,7 @@ const {errorHandler} = require("../../error_helper");
 module.exports = createCoreController('api::vendor.vendor', ({strapi}) => ({
   async find(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }

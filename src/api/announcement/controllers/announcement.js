@@ -11,19 +11,22 @@ const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
 const { forEach } = require("../../../../config/middlewares");
 const customAnnouncement = require("./CustomAnnouncement");
+const { checkAccessVendor, checkAccessAdmin } = require("../../jwt_helper");
 
 module.exports = createCoreController(
   "api::announcement.announcement",
   ({ strapi }) => ({
     async find(ctx) {
       try {
-        ctx.request.body.month = 12;
-        ctx.request.body.year = 2023;
+        const vendorId = await checkAccessVendor(ctx)
+        if (!vendorId) {
+          throw createError.Unauthorized();
+        }
+        const timeNow = new Date(Date.now()); //+ 8 * 60 * 60 * 1000
+        ctx.request.body.month = timeNow.getMonth() + 1;
+        ctx.request.body.year = timeNow.getFullYear();
         const announcement = await customAnnouncement.getAnnouncementEventList(ctx);
         const currentCalendarMonth = getCurrentMonthCalendar(ctx.request.body.year, ctx.request.body.month);
-        const timeNow = new Date(Date.now()); //+ 8 * 60 * 60 * 1000
-        const timeNowString = timeNow.toISOString();
-        const [date, time] = timeNowString.split("T")
         const formattedDates = currentCalendarMonth.map(innerArray =>
           innerArray.map(obj => (new Date(obj.date).toDateString()))
         );
@@ -43,7 +46,17 @@ module.exports = createCoreController(
     },
     async findOne(ctx) {
       try {
+        if (!(await checkAccessAdmin(ctx))) {
+          throw createError.Unauthorized();
+        }
         const id = ctx.params.id
+        const checkAnnouncementExist = await strapi.entityService.findMany("api::announcement.announcement", {
+          filters: {
+            id: {
+              $eq: id
+            }
+          }
+        });
         const result = await strapi.entityService.findOne("api::announcement.announcement", id, {
           fields: ["title", "description", "announcement_text", "startDate", "endDate", "color"],
           publicationState: "live"
@@ -55,11 +68,6 @@ module.exports = createCoreController(
     }
   })
 );
-
-function getCurrentDaAnnouncement (announcement) {
-  const timeNow = Date.now();
-
-}
 
 function getCurrentMonthCalendar(year, month) {
   //year = 2023, month = 12

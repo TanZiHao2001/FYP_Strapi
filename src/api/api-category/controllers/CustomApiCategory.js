@@ -1,7 +1,7 @@
 const { sanitize } = require("@strapi/utils");
 const { contentAPI } = sanitize;
 const cookie = require("cookie");
-const { getVendorIdFromToken } = require("../../jwt_helper");
+const { getVendorIdFromToken, checkAccessAdmin } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
 const { chromeuxreport } = require("googleapis/build/src/apis/chromeuxreport");
@@ -9,6 +9,9 @@ const { chromeuxreport } = require("googleapis/build/src/apis/chromeuxreport");
 module.exports = {
     getAllApiCategoryByChar: async (ctx) => {
         try {
+          if (!(await checkAccessAdmin(ctx))) {
+            throw createError.Unauthorized();
+          }
           const char = ctx.params.char
           ctx.request.query = {
             fields: ['category_name', 'image_url'],
@@ -63,6 +66,9 @@ module.exports = {
     },
     getAllApiCategory: async (ctx) => {
       try {
+        if (!(await checkAccessAdmin(ctx))) {
+          throw createError.Unauthorized();
+        }
         ctx.request.query = {
           fields: ['category_name', 'image_url'],
           publicationState: 'live',
@@ -105,6 +111,9 @@ module.exports = {
     },
     createApiCategory: async (ctx) => {
         try {
+          if (!(await checkAccessAdmin(ctx))) {
+            throw createError.Unauthorized();
+          }
           const {category_name, image_url} = ctx.request.body;
           if(!isNameValid(category_name)) {
             return ctx.send({error: `${category_name} is not a valid name, please start with a letter`})
@@ -123,6 +132,9 @@ module.exports = {
     },
     deleteApiCategory: async (ctx) => {
       try {
+        if (!(await checkAccessAdmin(ctx))) {
+          throw createError.Unauthorized();
+        }
         const categoryID = ctx.params.id;
         const findOneResult = await strapi.entityService.findOne("api::api-category.api-category", categoryID,{
           fields: ['category_name'],

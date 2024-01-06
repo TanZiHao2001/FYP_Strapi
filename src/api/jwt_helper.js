@@ -2,6 +2,7 @@ const JWT = require('jsonwebtoken')
 const createError = require('http-errors')
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
+const cookie = require("cookie");
 
 module.exports = {
   signToken: (type, userId, role) => {
@@ -65,4 +66,22 @@ module.exports = {
       })
     })
   },
+  checkAccessAdmin: async function(ctx) {
+    const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+    const accessToken = parsedCookies?.accessToken;
+    const adminRole = await module.exports.getVendorIdFromToken('accessToken', accessToken);
+    if (adminRole === "ROLE_ADMIN") {
+      return true; 
+    }
+    return false;
+  },
+  checkAccessVendor: async function(ctx) {
+    const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
+    const accessToken = parsedCookies?.accessToken;
+    const vendorId = await module.exports.getVendorIdFromToken('accessToken', accessToken);
+    if (typeof vendorId === "number") {
+      return vendorId; 
+    }
+    return null;
+  }
 }

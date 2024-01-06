@@ -457,7 +457,6 @@ module.exports = {
       };
 
       // Send the email
-      // await sendMail(mailOptions)
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.log("Error sending email:", error);
@@ -497,16 +496,3 @@ module.exports = {
   },
 };
 
-function sendMail(mailOptions) {
-  return new Promise((resolve, reject) => {
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log("Error sending email:", error);
-        resolve(error); // Reject the promise with the error
-      } else {
-        console.log("Email sent:", info.response);
-        resolve(info); // Resolve the promise with the info object
-      }
-    });
-  });
-}

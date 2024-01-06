@@ -1,5 +1,5 @@
 const cookie = require("cookie");
-const {getVendorIdFromToken, signToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, signToken, checkAccessVendor, checkAccessAdmin} = require("../../jwt_helper");
 const createError = require("http-errors");
 const {errorHandler} = require("../../error_helper");
 const {sanitize} = require("@strapi/utils");
@@ -11,10 +11,7 @@ const vendor = require("../../vendor/controllers/vendor");
 module.exports = {
   async createProject(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -90,10 +87,7 @@ module.exports = {
   },
   async getProjectAPICollection(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -144,9 +138,7 @@ module.exports = {
   },
   async deleteProject(ctx) {
     try{
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -192,9 +184,7 @@ module.exports = {
   },
   async getProjectDetails(ctx){
     try{
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -224,14 +214,12 @@ module.exports = {
   },
   async updateProject(ctx){
     try{
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
-      const {project_name, description} = ctx.request.body
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
-
+      
+      const {project_name, description} = ctx.request.body
       const projectId = ctx.params.id;
 
       const db_vendorId = await strapi.entityService.findMany('api::project.project', {
@@ -269,18 +257,17 @@ module.exports = {
   },
   async requestProjectToken(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
 
       const {project_id} = ctx.request.body;
 
-      const db_vendorId = await strapi.entityService.findOne('api::project.project', project_id, {
+      const db_vendorId = await strapi.entityService.findMany('api::project.project', {
         filters: {
           status: "Approved",
+          id: project_id,
           vendor: {
             id: vendorId,
           },
@@ -292,12 +279,12 @@ module.exports = {
         }
       });
 
-      if (!db_vendorId) {
+      if (db_vendorId.length === 0) {
         throw createError.Forbidden();
       }
 
-      if (db_vendorId.tokens.length > 0) {
-        for (const token of db_vendorId.tokens) {
+      if (db_vendorId[0].tokens.length > 0) {
+        for (const token of db_vendorId[0].tokens) {
           if(Date.now() < new Date(token.expiration_date).getTime()) {
             return ctx.send({"error": "A token is currently active for this project. Check with admin if you did not request it"})
           }
@@ -315,16 +302,14 @@ module.exports = {
           publishedAt: Date.now()
         }
       })
-      ctx.send({"message": "Token created"})
+      ctx.send({"message": project_token})
     } catch (error) {
       await errorHandler(ctx, error);
     }
   },
   async getAllProjectTokens(ctx){
     try{
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -369,6 +354,9 @@ module.exports = {
   },
   async getUserProjectTable(ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const vendorId = ctx.params.id;
       const result = await strapi.entityService.findMany("api::project.project", {
         fields: ["project_name", "description", "status", "createdAt"],
@@ -387,6 +375,9 @@ module.exports = {
   },
   async blockUserProjectTable(ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {project_id} = ctx.request.body;
       const project_data = await strapi.entityService.findOne("api::project.project", project_id, {
         fields: ["project_name"]
@@ -408,6 +399,9 @@ module.exports = {
   },
   async unblockUserProjectTable(ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {project_id} = ctx.request.body;
       const project_data = await strapi.entityService.findOne("api::project.project", project_id, {
         fields: ["project_name"]

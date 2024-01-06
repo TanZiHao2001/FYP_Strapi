@@ -1,6 +1,6 @@
 // @ts-nocheck
 const cookie = require("cookie");
-const {getVendorIdFromToken, signToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, signToken, checkAccessAdmin, checkAccessVendor} = require("../../jwt_helper");
 const createError = require("http-errors");
 const {errorHandler} = require("../../error_helper");
 const {sanitize} = require("@strapi/utils");
@@ -11,10 +11,7 @@ const AuthController = require('./AuthController');
 module.exports = {
   async updateProfile(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -34,10 +31,7 @@ module.exports = {
   },
   async changePassword(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -67,6 +61,9 @@ module.exports = {
   },
   async getVendorList(ctx){
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       ctx.request.query = {
         fields: ["username", "email", "status"],
       };
@@ -95,6 +92,9 @@ module.exports = {
   },
   async createUser (ctx){
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {email, organisation} = ctx.request.body;
 
       if (!validateEmail(email)) {
@@ -131,7 +131,15 @@ module.exports = {
   },
   async blockVendor (ctx) {
     try{
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {id} = ctx.request.body;
+      const checkVendorExist = await strapi.entityService.findOne("api::vendor.vendor", id);
+      if(!checkVendorExist) {
+        throw createError.NotFound();
+      }
+
       const update = await strapi.entityService.update('api::vendor.vendor', id, {
         data: {
           "status": "Rejected",
@@ -144,8 +152,16 @@ module.exports = {
   },
   async unblockVendor (ctx) {
     try{
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
+
       const {id} = ctx.request.body;
-      
+      const checkVendorExist = await strapi.entityService.findOne("api::vendor.vendor", id);
+      if(!checkVendorExist) {
+        throw createError.NotFound();
+      }
+
       const update = await strapi.entityService.update('api::vendor.vendor', id, {
         data: {
           "status": "Approved",
@@ -162,6 +178,9 @@ module.exports = {
   },
   async getTotalUser (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const days = ctx.params?.days;
       // get count of user list, if gt number of days, filter by current day - activated day < given day
       const result = await strapi.entityService.findMany("api::vendor.vendor", {
@@ -187,6 +206,9 @@ module.exports = {
   },
   async getNewUser (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const result = await strapi.entityService.findMany("api::vendor.vendor", {
         filters: {
           activatedTime: {
@@ -219,6 +241,9 @@ module.exports = {
   },
   async getNonActiveUser (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const allResult = await strapi.entityService.findMany("api::vendor.vendor");
       const result = await strapi.entityService.findMany("api::vendor.vendor", {
         filters: {
@@ -241,6 +266,9 @@ module.exports = {
         1. if the vendor has activated for more than 1 month, but has never login to portal
     */
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const allUser = await strapi.entityService.findMany("api::vendor.vendor");
       const timeNow = new Date();
       const newUser = allUser.filter((user) => {
@@ -264,30 +292,13 @@ module.exports = {
       nonActiveUserPercentage = (nonActiveUser.length / allUser.length) * 100,
       nonActivatedUserPercentage = (nonActivatedUser.length / allUser.length) * 100
 
-
-      if (newUserPercentage % 1 >= 0.5) {
-        newUserPercentage = Math.ceil(newUserPercentage);
-      } else {
-        newUserPercentage = Math.floor(newUserPercentage);
-      }
-      if (activeUserPercentage % 1 >= 0.5) {
-        activeUserPercentage = Math.ceil(activeUserPercentage);
-      } else {
-        activeUserPercentage = Math.floor(activeUserPercentage);
-      }
-      if (nonActiveUserPercentage % 1 >= 0.5) {
-        nonActiveUserPercentage = Math.ceil(nonActiveUserPercentage);
-      } else {
-        nonActiveUserPercentage = Math.floor(nonActiveUserPercentage);
-      }
-      if (nonActivatedUserPercentage % 1 >= 0.5) {
-        nonActivatedUserPercentage = Math.ceil(nonActivatedUserPercentage);
-      } else {
-        nonActivatedUserPercentage = Math.floor(nonActivatedUserPercentage);
-      }
+      newUserPercentage = checkCeilFloor(newUserPercentage);
+      activeUserPercentage = checkCeilFloor(activeUserPercentage);
+      nonActiveUserPercentage = checkCeilFloor(nonActiveUserPercentage);
+      nonActivatedUserPercentage = checkCeilFloor(nonActivatedUserPercentage);
       
       let percentageArray = [newUserPercentage, activeUserPercentage, nonActiveUserPercentage, nonActivatedUserPercentage];
-      const totalPercentage = newUserPercentage + activeUserPercentage + nonActiveUserPercentage + nonActivatedUserPercentage
+      let totalPercentage = newUserPercentage + activeUserPercentage + nonActiveUserPercentage + nonActivatedUserPercentage
       let i = 0
       while(totalPercentage < 100) {
         if (i === 4) i = 0;
@@ -313,7 +324,20 @@ module.exports = {
   },
   async getOneUser (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const userID = ctx.params.id;
+      const checkUserExist = await strapi.entityService.findMany("api::vendor.vendor", {
+        filters: {
+          id: {
+            $eq: userID
+          }
+        }
+      });
+      if(checkUserExist.length === 0) {
+        throw createError.NotFound();
+      }
       const user = await strapi.entityService.findOne("api::vendor.vendor", userID, {
         fields: ['fullName', 'email', 'username', 'organisation', 'status', 'activatedTime', 'lastLoginTime'],
         populate: {
@@ -342,8 +366,15 @@ module.exports = {
   },
   async getOneUserAccessControl (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const char = ctx.params.char;
       const {id} = ctx.request.body;
+      const checkVendorExist = await strapi.entityService.findOne("api::vendor.vendor", id);
+      if (!checkVendorExist) {
+        throw createError.NotFound();
+      }
       const userInfo = await strapi.entityService.findOne("api::vendor.vendor", id, {
         fields: ["email"],
         populate: {
@@ -427,8 +458,48 @@ module.exports = {
   },
   async setOneUserAccessControl (ctx) {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {vendor_id, give, revoke} = ctx.request.body;
-      const userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
+      const checkVendorExist = await strapi.entityService.findOne("api::vendor.vendor", vendor_id);
+      if (!checkVendorExist) {
+        throw createError.NotFound();
+      }
+      let userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
+        fields: ["email"],
+        populate: {
+          access_controls: {
+            fields: ["status"],
+            populate: {
+              api_collection_id: {
+                fields: ["id"],
+              }
+            },
+          }
+        }
+      });
+
+      //prepare api collection id for create
+      const processedIds = new Set();
+      // const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
+      const createIds = give.filter(givenId => 
+        !processedIds.has(givenId) && 
+        !userInfo.access_controls.some(obj => obj.api_collection_id?.id === (processedIds.add(givenId), givenId))
+      );
+
+      for(const id of createIds) {
+        await strapi.entityService.create("api::access-control.access-control", {
+          data: {
+            vendor_id: vendor_id,
+            api_collection_id: id,
+            status: 'Approved',
+            publishedAt: Date.now(),
+          }
+        }) 
+      }
+
+      userInfo = await strapi.entityService.findOne("api::vendor.vendor", vendor_id, {
         fields: ["email"],
         populate: {
           access_controls: {
@@ -447,31 +518,12 @@ module.exports = {
       // const filteredArray = userInfo.access_controls.filter(obj => revokeSet.has(obj.api_collection_id.id));
       const filteredArray = userInfo.access_controls.filter(obj => obj.api_collection_id?.id && revokeSet.has(obj.api_collection_id.id));
       const removeIds = filteredArray.map(obj => obj.id);
-      
-      //prepare api collection id for create
-      const processedIds = new Set();
-      // const createIds = give.filter(givenId => !processedIds.has(givenId) && !userInfo.access_controls.some(obj => obj.api_collection_id.id === (processedIds.add(givenId), givenId)));
-      const createIds = give.filter(givenId => 
-        !processedIds.has(givenId) && 
-        !userInfo.access_controls.some(obj => obj.api_collection_id?.id === (processedIds.add(givenId), givenId))
-      );
-      
-      console.log(createIds);
 
       for(const id of removeIds) {
         await strapi.entityService.delete("api::access-control.access-control", id)
       }
       
-      for(const id of createIds) {
-        await strapi.entityService.create("api::access-control.access-control", {
-          data: {
-            vendor_id: vendor_id,
-            api_collection_id: id,
-            status: 'Approved',
-            publishedAt: Date.now(),
-          }
-        }) 
-      }
+      
       
       return ctx.send({message: "Access control edited"});
     } catch (error) {
@@ -484,4 +536,12 @@ module.exports = {
 function validateEmail(email) {
   var re = /\S+@\S+\.\S+/;
   return re.test(email);
+}
+
+function checkCeilFloor(percentage) {
+  if (percentage % 1 >= 0.5) {
+    return Math.ceil(percentage);
+  } else {
+    return Math.floor(percentage);
+  }
 }
