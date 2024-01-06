@@ -8,20 +8,16 @@ const {createCoreController} = require("@strapi/strapi").factories;
 const {sanitize} = require("@strapi/utils");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
-const {getVendorIdFromToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, checkAccessVendor} = require("../../jwt_helper");
 const createError = require("http-errors");
 const {errorHandler} = require("../../error_helper");
 
 module.exports = createCoreController("api::project.project", ({strapi}) => ({
   async find(ctx) {
     try {
-      let vendorId;
-      const parsedCookies = cookie.parse(ctx.request.header.cookie);
-      const accessToken = parsedCookies.accessToken;
-
-      vendorId = await getVendorIdFromToken('accessToken', accessToken);
-      if(!vendorId) {
-        throw new Error ('Unauthorised!');
+      const vendorId = await checkAccessVendor(ctx)
+      if (!vendorId) {
+        throw createError.Unauthorized();
       }
 
       ctx.request.query = {
@@ -70,9 +66,7 @@ module.exports = createCoreController("api::project.project", ({strapi}) => ({
   },
   async findOne(ctx){
     try{
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken)
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }

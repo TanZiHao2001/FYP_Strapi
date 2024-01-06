@@ -3,7 +3,7 @@
 const { errorHandler } = require("../../error_helper");
 const createError = require("http-errors");
 const cookie = require("cookie");
-const { getVendorIdFromToken } = require("../../jwt_helper");
+const { getVendorIdFromToken, checkAccessVendor } = require("../../jwt_helper");
 /**
  * error-type controller
  */
@@ -13,13 +13,7 @@ const { createCoreController } = require("@strapi/strapi").factories;
 module.exports = createCoreController("api::error-type.error-type", ({ strapi }) => ({
     async find(ctx) {
       try {
-        const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-        const accessToken = parsedCookies.accessToken;
-        if (!accessToken) {
-          throw createError.Unauthorized();
-        }
-
-        const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+        const vendorId = await checkAccessVendor(ctx)
         if (!vendorId) {
           throw createError.Unauthorized();
         }

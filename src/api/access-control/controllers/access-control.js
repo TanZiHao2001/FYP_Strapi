@@ -5,7 +5,7 @@
  */
 const {createCoreController} = require('@strapi/strapi').factories;
 const {sanitize} = require('@strapi/utils')
-const {getVendorIdFromToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, checkAccessVendor} = require("../../jwt_helper");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
 const createError = require("http-errors");
@@ -15,10 +15,7 @@ module.exports = createCoreController('api::access-control.access-control', ({st
 
   async find(ctx) {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies?.accessToken;
-      
-      const vendorId = await getVendorIdFromToken('accessToken', accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }

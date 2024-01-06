@@ -1,7 +1,7 @@
 const { sanitize } = require("@strapi/utils");
 const { contentAPI } = sanitize;
 const cookie = require("cookie");
-const { getVendorIdFromToken } = require("../../jwt_helper");
+const { getVendorIdFromToken, checkAccessVendor, checkAccessAdmin } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
 const { create } = require("tar");
@@ -10,13 +10,7 @@ const schema = require("../../schema");
 module.exports = {
   apiCollection: async (ctx) => {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies.accessToken;
-      if (!accessToken) {
-        throw createError.Unauthorized();
-      }
-
-      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -139,13 +133,7 @@ module.exports = {
   },
   getOneapiCollection: async (ctx) => {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies.accessToken;
-      if (!accessToken) {
-        throw createError.Unauthorized();
-      }
-
-      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -240,13 +228,7 @@ module.exports = {
   },
   subscribedApiCollection: async (ctx) => {
     try {
-      const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-      const accessToken = parsedCookies.accessToken;
-      if (!accessToken) {
-        throw createError.Unauthorized();
-      }
-
-      const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+      const vendorId = await checkAccessVendor(ctx)
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -305,9 +287,12 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
+  //the function below might not be in use, need to double check
   getAllApiCollection: async (ctx) => {
     try {
-
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       ctx.request.query = {
         fields: ['api_collection_name', 'createdAt'],
         publicationState: 'live',
@@ -349,6 +334,9 @@ module.exports = {
   },
   createApiCollection: async (ctx) => {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const {api_collection_name, description, short_description, api_category_id} = ctx.request.body;
       const entry = await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
@@ -366,6 +354,9 @@ module.exports = {
   },
   deleteApiCollection: async (ctx) => {
     try {
+        if (!(await checkAccessAdmin(ctx))) {
+          throw createError.Unauthorized();
+        }
         const id = ctx.params.id;
         const maxDepth = 4; 
         const childAttr = "child_attr_ids"
@@ -458,6 +449,9 @@ module.exports = {
   },
   createWholeApiCollectionFromFile: async (ctx) => {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const fileContent = ctx.request.body
       if(!(await checkFileContent(ctx, fileContent))) {
         return;
@@ -569,6 +563,9 @@ module.exports = {
   },
   getFileContent: async (ctx) => {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       const fileContent = ctx.request.body
       console.log(fileContent.file)
       console.log(JSON.parse(fileContent.file))
@@ -697,6 +694,9 @@ module.exports = {
   },
   publishApiCollection: async (ctx) => {
     try {
+      if (!(await checkAccessAdmin(ctx))) {
+        throw createError.Unauthorized();
+      }
       let {apiCollectionId} = ctx.request.body;
       apiCollectionId = parseInt(apiCollectionId);
       const maxDepth = 4; 

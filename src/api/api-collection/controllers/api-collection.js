@@ -6,7 +6,7 @@
 
 const { createCoreController } = require("@strapi/strapi").factories;
 const {sanitize} = require('@strapi/utils')
-const {getVendorIdFromToken} = require("../../jwt_helper");
+const {getVendorIdFromToken, checkAccessAdmin, checkAccessVendor} = require("../../jwt_helper");
 const {contentAPI} = sanitize;
 const cookie = require("cookie");
 const createError = require("http-errors");
@@ -17,14 +17,10 @@ module.exports = createCoreController(
   ({ strapi }) => ({
     async find(ctx) {
       try {
-        const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-        const accessToken = parsedCookies?.accessToken;
-
-        const vendorId = await getVendorIdFromToken("accessToken", accessToken);
+        const vendorId = await checkAccessVendor(ctx)
         if (!vendorId) {
           throw createError.Unauthorized();
         }
-
         ctx.request.query = {
           filters: {
             vendor_id: {
@@ -75,14 +71,7 @@ module.exports = createCoreController(
     },
     async findOne(ctx) {
       try {
-        const parsedCookies = cookie.parse(ctx.request.header.cookie || "");
-        const accessToken = parsedCookies.accessToken;
-        if (!accessToken) {
-          throw createError.Unauthorized();
-        }
-  
-        const vendorId = await getVendorIdFromToken("accessToken", accessToken);
-        if (vendorId !== "ROLE_ADMIN") {
+        if (!(await checkAccessAdmin(ctx))) {
           throw createError.Unauthorized();
         }
         

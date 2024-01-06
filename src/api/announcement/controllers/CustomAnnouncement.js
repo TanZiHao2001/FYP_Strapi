@@ -1,7 +1,7 @@
 const { sanitize } = require("@strapi/utils");
 const { contentAPI } = sanitize;
 // const cookie = require("cookie");
-// const { getVendorIdFromToken } = require("../../jwt_helper");
+const { checkAccessAdmin, checkAccessVendor } = require("../../jwt_helper");
 const createError = require("http-errors");
 const { errorHandler } = require("../../error_helper");
 const { filter } = require("../../../../config/middlewares");
@@ -9,6 +9,9 @@ const { filter } = require("../../../../config/middlewares");
 module.exports = {
     getAnnouncementList: async (ctx) => {
       try {
+        if (!(await checkAccessAdmin(ctx))) {
+            throw createError.Unauthorized();
+        }
         ctx.request.query = {
             fields: ["title", "description", "startDate", "endDate"],
             publicationState: 'live',
@@ -50,7 +53,20 @@ module.exports = {
     },
     deleteAnnouncement: async (ctx) => {
         try{
+            if (!(await checkAccessAdmin(ctx))) {
+                throw createError.Unauthorized();
+            }
             const announcementId = ctx.params.id;
+            const checkAnnouncementExist = await strapi.entityService.findMany("api::announcement.announcement", {
+                filters: {
+                    id: {
+                        $eq: announcementId
+                    }
+                }
+            });
+            if (checkAnnouncementExist.length === 0) {
+                throw createError.NotFound();
+            }
             const entry = await strapi.entityService.delete('api::announcement.announcement', announcementId);
             ctx.send({message: "Announcement Deleted"});
         } catch(error) {
@@ -58,8 +74,11 @@ module.exports = {
         }
     },
     getAnnouncementEventList: async (ctx) => {
-        //this function may need to be remodified if wants to handle announcement time as well
+        //this function may need to be remodified if want to handle announcement time as well
         try{
+            if (!(await checkAccessAdmin(ctx))) {
+                throw createError.Unauthorized();
+            }
             const {year, month} = ctx.request.body
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
                 fields: ["title", "startDate", "endDate", "color"]
@@ -268,6 +287,9 @@ module.exports = {
     },
     createAnnouncement: async (ctx) => {
         try {
+            if (!(await checkAccessAdmin(ctx))) {
+                throw createError.Unauthorized();
+            }
             const {title, description, announcement_text, startDate, endDate, color} = ctx.request.body;
             let id;
             if(ctx.request.body.id) {
@@ -335,6 +357,9 @@ module.exports = {
     },
     getAnnouncementAlert: async (ctx) => {
         try {
+            if (!(await checkAccessAdmin(ctx))) {
+                throw createError.Unauthorized();
+            }
             ctx.request.query = {
                 fields: ["title", "description", "startDate", "endDate", "color"],
                 publicationState: 'live',
