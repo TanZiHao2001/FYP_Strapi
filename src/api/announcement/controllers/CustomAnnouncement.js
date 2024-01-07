@@ -120,6 +120,7 @@ module.exports = {
                         // check if the startDate for current announcement is already earlier than the current checking date
                         console.log("annoucenment : currmomnth " + new Date(filteredAnnouncement[j].startDate).getTime() + " " + new Date(currMonthDate[k]).getTime());
                         if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
+                        //in local return gmt, but in deployment will get gmt+8
                         // if( (startMonth < new Date(currMonthDate[k]).getMonth() && startYear === new Date(currMonthDate[k]).getFullYear()) 
                         // || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
                         //     break loop3;
