@@ -129,10 +129,8 @@ module.exports = {
                         //     break loop3;
                         // };
                         // check if startDate for current announcement matches the current checking date 
-                        console.log("Curr Month Date k " + currMonthDate[k])
-                        console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear + " " + endMonth + " " + endDate)
-                        console.log("Year Month Date of it")
-                        console.log(currMonthDate[k].getFullYear() + " " + currMonthDate[k].getMonth() + " " + currMonthDate[k].getDate());
+                        console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear + " " + endMonth + " " + endDate + 
+                        " compare to currmonthdate[k]" + currMonthDate[k].getFullYear() + " " + currMonthDate[k].getMonth() + " " + currMonthDate[k].getDate())
                         if(startYear === new Date(currMonthDate[k]).getFullYear() && startMonth === new Date(currMonthDate[k]).getMonth() && startDate === new Date(currMonthDate[k]).getDate()) {
                             console.log("this announcement equals ")
                             let rowIndex = formattedDates.findIndex(
