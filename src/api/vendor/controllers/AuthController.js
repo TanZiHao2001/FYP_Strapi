@@ -115,6 +115,7 @@ function setToken(ctx, key, value) {
     httpOnly: true,
     secure: true,
     sameSite: "none",
+    secureProxy: true,
     maxAge:
       key === "refreshToken" ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000,
     path: "/",
