@@ -83,10 +83,6 @@ module.exports = {
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
                 fields: ["title", "startDate", "endDate", "color"]
             });
-            console.log("Announcement ")
-            announcement.forEach(announcement => {
-                console.log(announcement)
-            })
             const currentMonthCalendar = getCurrentMonthCalendar(year, month);
             const result = create3DArray();
             let currMonthDate = []
@@ -98,7 +94,6 @@ module.exports = {
 
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
             let filteredAnnouncement = announcement.filter(item => item !== null);
-            console.log("Filtered Announcement ")
             filteredAnnouncement.forEach(announcement => {
                 console.log(announcement)
             })
@@ -123,14 +118,13 @@ module.exports = {
                     console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear + " " + endMonth + " " + endDate)
                     loop3: for(let k = 0; k < currMonthDate.length; k++) {
                         // check if the startDate for current announcement is already earlier than the current checking date
+                        console.log("annoucenment : currmomnth " + new Date(filteredAnnouncement[j].startDate).getTime() + " " + new Date(currMonthDate[k]).getTime());
                         if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
                         // if( (startMonth < new Date(currMonthDate[k]).getMonth() && startYear === new Date(currMonthDate[k]).getFullYear()) 
                         // || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
                         //     break loop3;
                         // };
                         // check if startDate for current announcement matches the current checking date 
-                        console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear + " " + endMonth + " " + endDate + 
-                        " compare to currmonthdate[k]" + currMonthDate[k].getFullYear() + " " + currMonthDate[k].getMonth() + " " + currMonthDate[k].getDate())
                         if(startYear === new Date(currMonthDate[k]).getFullYear() && startMonth === new Date(currMonthDate[k]).getMonth() && startDate === new Date(currMonthDate[k]).getDate()) {
                             console.log("this announcement equals ")
                             let rowIndex = formattedDates.findIndex(
