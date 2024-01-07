@@ -333,8 +333,8 @@ module.exports = {
 
       ctx.cookies.set("accessToken", null, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
@@ -342,8 +342,8 @@ module.exports = {
 
       ctx.cookies.set("refreshToken", null, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
@@ -351,8 +351,8 @@ module.exports = {
 
       ctx.cookies.set("abbre", null, {
         httpOnly: false,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
