@@ -76,7 +76,7 @@ module.exports = {
     getAnnouncementEventList: async (ctx) => {
         //this function may need to be remodified if want to handle announcement time as well
         try{
-            if (!(await checkAccessAdmin(ctx))) {
+            if (!(await checkAccessAdmin(ctx) || await checkAccessVendor(ctx))) {
                 throw createError.Unauthorized();
             }
             const {year, month} = ctx.request.body

@@ -113,9 +113,8 @@ function validateEmail(email) {
 function setToken(ctx, key, value) {
   ctx.cookies.set(key, value, {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    secureProxy: true,
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     maxAge:
       key === "refreshToken" ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000,
     path: "/",

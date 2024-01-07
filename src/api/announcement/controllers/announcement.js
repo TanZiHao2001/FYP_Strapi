@@ -70,7 +70,6 @@ module.exports = createCoreController(
 );
 
 function getCurrentMonthCalendar(year, month) {
-  //year = 2023, month = 12
   let currentMonthCalendar = [];
   const tempMonthCalendar = [];
   const firstDayCurrentMonth = new Date(year, month - 1, 1, 8).getDay() // 5 (friday)
