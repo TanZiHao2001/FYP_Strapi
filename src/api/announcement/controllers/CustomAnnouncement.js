@@ -94,9 +94,6 @@ module.exports = {
 
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
             let filteredAnnouncement = announcement.filter(item => item !== null);
-            filteredAnnouncement.forEach(announcement => {
-                console.log(announcement)
-            })
             filteredAnnouncement.sort((a, b) => {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
@@ -115,10 +112,8 @@ module.exports = {
                     const endYear = new Date(filteredAnnouncement[j].endDate).getFullYear();
                     const endMonth = new Date(filteredAnnouncement[j].endDate).getMonth();
                     const endDate = new Date(filteredAnnouncement[j].endDate).getDate();
-                    console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear + " " + endMonth + " " + endDate)
                     loop3: for(let k = 0; k < currMonthDate.length; k++) {
                         // check if the startDate for current announcement is already earlier than the current checking date
-                        console.log("annoucenment : currmomnth " + new Date(filteredAnnouncement[j].startDate).getTime() + " " + new Date(currMonthDate[k]).getTime());
                         if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
                         // if( (startMonth < new Date(currMonthDate[k]).getMonth() && startYear === new Date(currMonthDate[k]).getFullYear()) 
                         // || (startMonth === new Date(currMonthDate[k]).getMonth() && startDate < new Date(currMonthDate[k]).getDate()) ){
@@ -126,10 +121,9 @@ module.exports = {
                         // };
                         // check if startDate for current announcement matches the current checking date 
                         if(startYear === new Date(currMonthDate[k]).getFullYear() && startMonth === new Date(currMonthDate[k]).getMonth() && startDate === new Date(currMonthDate[k]).getDate()) {
-                            console.log("this announcement equals ")
                             let rowIndex = formattedDates.findIndex(
-                                innerArray => innerArray.includes(new Date(startYear, startMonth, startDate, 8).toDateString()));
-                            let columnIndex = formattedDates[rowIndex].indexOf(new Date(startYear, startMonth, startDate, 8).toDateString());
+                                innerArray => innerArray.includes(new Date(startYear, startMonth, startDate).toDateString()));
+                            let columnIndex = formattedDates[rowIndex].indexOf(new Date(startYear, startMonth, startDate).toDateString());
                             const tempLevel = [false, false, false];
                             const tempResult = result[rowIndex][columnIndex]
                             for(let x = 0; x < tempResult.length; x++) {
@@ -413,18 +407,18 @@ module.exports = {
     //year = 2023, month = 12
     let currentMonthCalendar = [];
     const tempMonthCalendar = [];
-    const firstDayCurrentMonth = new Date(year, month - 1, 1, 8).getDay() // 5 (friday)
-    const lastDayCurrentMonth = new Date(year, month, 0, 8).getDay() // 0 (sunday)
-    const lastDateCurrentMonth = new Date(year, month, 0, 8).getDate() // 31 (31/12)
-    const lastDateLastMonth = new Date(year, month - 1, 0, 8).getDate() // 30 (30/11)
+    const firstDayCurrentMonth = new Date(year, month - 1, 1).getDay() // 5 (friday)
+    const lastDayCurrentMonth = new Date(year, month, 0).getDay() // 0 (sunday)
+    const lastDateCurrentMonth = new Date(year, month, 0).getDate() // 31 (31/12)
+    const lastDateLastMonth = new Date(year, month - 1, 0).getDate() // 30 (30/11)
     for(let i = firstDayCurrentMonth; i > 0; i--) {
-        tempMonthCalendar.push({date: new Date(year, month - 2, lastDateLastMonth - i + 1, 8)})
+        tempMonthCalendar.push({date: new Date(year, month - 2, lastDateLastMonth - i + 1)})
     }
     for(let i = 1; i <= lastDateCurrentMonth; i++){
-        tempMonthCalendar.push({date: new Date(year, month - 1, i, 8)})
+        tempMonthCalendar.push({date: new Date(year, month - 1, i)})
     }
     for(let i = 1; tempMonthCalendar.length < 42; i++){
-        tempMonthCalendar.push({date: new Date(year, month, i, 8)})
+        tempMonthCalendar.push({date: new Date(year, month, i)})
     }
     currentMonthCalendar = splitCurrentMonthIntoSixWeeks(tempMonthCalendar)
     return currentMonthCalendar
