@@ -46,8 +46,8 @@ cron.schedule("0 8 * * 1-5", async () => {
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
-    // const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
-    const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
+    const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
+    // const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
       <head>
@@ -415,8 +415,10 @@ module.exports = {
       const link =
         result[0].password == null
           // ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
-          : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
+          ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
+          : `http://localhost:4200/sign/reset-password?token=${verifyToken}`
+          // ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
+          // : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
       const message =
         result[0].password == null
