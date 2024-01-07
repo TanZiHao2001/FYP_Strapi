@@ -204,8 +204,8 @@ module.exports = {
       const refreshToken = await signToken("refreshToken", entry.id);
       ctx.cookies.set('abbre', getAbbreviation(entry.username), {
         httpOnly: false,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 60 * 24 * 1000,
         path: "/",
       });

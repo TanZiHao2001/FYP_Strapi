@@ -83,7 +83,7 @@ module.exports = {
             let announcement = await strapi.entityService.findMany("api::announcement.announcement", {
                 fields: ["title", "startDate", "endDate", "color"]
             });
-            
+            console.log("Announcement " + announcement)
             const currentMonthCalendar = getCurrentMonthCalendar(year, month);
             const result = create3DArray();
             let currMonthDate = []
@@ -94,7 +94,9 @@ module.exports = {
             }
 
             filterAnnouncementByCurrentMonthYear(announcement, currMonthDate);
+            console.log("CurrMonthDate " + currMonthDate)
             let filteredAnnouncement = announcement.filter(item => item !== null);
+            console.log("Filtered Announcement " + filteredAnnouncement)
             filteredAnnouncement.sort((a, b) => {
                 // @ts-ignore
                 return new Date(a.startDate) - new Date(b.startDate) || new Date(a.endDate) - new Date(b.endDate);
@@ -107,12 +109,14 @@ module.exports = {
                     if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[0]).getTime()) {
                         filteredAnnouncement[j].startDate = new Date(currMonthDate[0]);
                     }
+                    console.log("One filtered announcemnet " + filteredAnnouncement[j])
                     const startYear = new Date(filteredAnnouncement[j].startDate).getFullYear();
                     const startMonth = new Date(filteredAnnouncement[j].startDate).getMonth();
                     const startDate = new Date(filteredAnnouncement[j].startDate).getDate();
                     const endYear = new Date(filteredAnnouncement[j].endDate).getFullYear();
                     const endMonth = new Date(filteredAnnouncement[j].endDate).getMonth();
                     const endDate = new Date(filteredAnnouncement[j].endDate).getDate();
+                    console.log("all year month date " + startYear + " " + startMonth + " " + startDate + " " + endYear)
                     loop3: for(let k = 0; k < currMonthDate.length; k++) {
                         // check if the startDate for current announcement is already earlier than the current checking date
                         if(new Date(filteredAnnouncement[j].startDate).getTime() < new Date(currMonthDate[k]).getTime()) break loop3;
