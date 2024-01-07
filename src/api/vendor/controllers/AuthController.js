@@ -207,7 +207,6 @@ module.exports = {
         secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 60 * 24 * 1000,
-        domain: process.env.NODE_ENV === "production" ? ".com" : "localhost",
         path: "/",
       });
       setToken(ctx, "accessToken", accessToken);
