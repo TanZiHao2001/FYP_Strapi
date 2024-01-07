@@ -10,8 +10,7 @@ const schema = require("../../schema");
 module.exports = {
   apiCollection: async (ctx) => {
     try {
-      const vendorId = await checkAccessVendor(ctx)
-      if (!vendorId) {
+      if (!(await checkAccessAdmin(ctx) || await checkAccessVendor(ctx))) {
         throw createError.Unauthorized();
       }
 
