@@ -13,18 +13,19 @@ const { create } = require("tar");
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
   auth: {
-    user: "sendemail350@gmail.com",
-    // user: "zihao.010415@gmail.com",
-    pass: "kjhigtncoovkicff", //update in .env
-    // pass: "vvjw xwyg lbei ytkx",
+    // user: "sendemail350@gmail.com",
+    user: "zihao.010415@gmail.com",
+    // pass: "kjhigtncoovkicff", //update in .env
+    pass: "vvjw xwyg lbei ytkx",
   },
 });
 //0 8 * * 1-5
+//every morning 8am monday till friday
 cron.schedule("0 8 * * 1-5", async () => {
   const result = await strapi.entityService.findMany("api::vendor.vendor", {
     filters: {
       status: "Approved",
-      refresh_token: {
+      activatedTime: {
         $null: true,
       }
     },
@@ -99,6 +100,9 @@ cron.schedule("0 8 * * 1-5", async () => {
       },
     })
   })
+}, {
+  scheduled: true,
+  timezone: "Asia/Kuala_Lumpur"
 });
 
 function validateEmail(email) {
