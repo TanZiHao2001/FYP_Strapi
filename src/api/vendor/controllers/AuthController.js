@@ -46,7 +46,7 @@ cron.schedule("0 8 * * 1-5", async () => {
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
-    const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
+    const link = `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`;
     // const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
@@ -207,6 +207,7 @@ module.exports = {
         secure: process.env.NODE_ENV === "production" ? true : false,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 60 * 24 * 1000,
+        domain: process.env.NODE_ENV === "production" ? ".com" : "localhost",
         path: "/",
       });
       setToken(ctx, "accessToken", accessToken);
@@ -415,8 +416,8 @@ module.exports = {
       const link =
         result[0].password == null
           // ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          : `http://localhost:4200/sign/reset-password?token=${verifyToken}`
+          ? `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`
+          : `http://fyp-frontend-939df.web.app/sign/reset-password?token=${verifyToken}`
           // ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
           // : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
