@@ -567,8 +567,6 @@ module.exports = {
         throw createError.Unauthorized();
       }
       const fileContent = ctx.request.body
-      console.log(fileContent.file)
-      console.log(JSON.parse(fileContent.file))
       if(!(await checkFileContent(ctx, JSON.parse(fileContent.file)))) {
         return;
       }
@@ -592,13 +590,6 @@ module.exports = {
       if(checkApiCollectionName.length > 0) {
         return ctx.send({error: `${checkApiCollectionName[0].api_collection_name} already exist, please change to a different name`})
       }
-      // const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
-      //   filters: {
-      //     category_name: {
-      //       $eq: category_name
-      //     }
-      //   }
-      // });
       
       const createApiCollection =  await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
