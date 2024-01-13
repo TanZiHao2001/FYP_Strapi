@@ -72,18 +72,18 @@ module.exports = createCoreController(
 function getCurrentMonthCalendar(year, month) {
   let currentMonthCalendar = [];
   const tempMonthCalendar = [];
-  const firstDayCurrentMonth = new Date(year, month - 1, 1, 8).getDay() // 5 (friday)
-  const lastDayCurrentMonth = new Date(year, month, 0, 8).getDay() // 0 (sunday)
-  const lastDateCurrentMonth = new Date(year, month, 0, 8).getDate() // 31 (31/12)
-  const lastDateLastMonth = new Date(year, month - 1, 0, 8).getDate() // 30 (30/11)
+  const firstDayCurrentMonth = new Date(year, month - 1, 1).getDay() // 5 (friday)
+  const lastDayCurrentMonth = new Date(year, month, 0).getDay() // 0 (sunday)
+  const lastDateCurrentMonth = new Date(year, month, 0).getDate() // 31 (31/12)
+  const lastDateLastMonth = new Date(year, month - 1, 0).getDate() // 30 (30/11)
   for(let i = firstDayCurrentMonth; i > 0; i--) {
       tempMonthCalendar.push({date: new Date(year, month - 2, lastDateLastMonth - i + 1, 8)})
   }
   for(let i = 1; i <= lastDateCurrentMonth; i++){
-      tempMonthCalendar.push({date: new Date(year, month - 1, i, 8)})
+      tempMonthCalendar.push({date: new Date(year, month - 1, i)})
   }
   for(let i = 1; tempMonthCalendar.length < 42; i++){
-      tempMonthCalendar.push({date: new Date(year, month, i, 8)})
+      tempMonthCalendar.push({date: new Date(year, month, i)})
   }
   currentMonthCalendar = splitCurrentMonthIntoSixWeeks(tempMonthCalendar)
   return currentMonthCalendar
