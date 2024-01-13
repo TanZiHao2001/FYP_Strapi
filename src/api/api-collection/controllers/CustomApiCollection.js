@@ -63,7 +63,7 @@ module.exports = {
                 },
               },
             },
-            fields: ["api_collection_name", "description"],
+            fields: ["api_collection_name", "description", "short_description"],
             publicationState: 'live',
             populate: {
               object_id: {
@@ -590,7 +590,7 @@ module.exports = {
       if (checkApiCollectionName.length > 0) {
         return ctx.send({error: `${checkApiCollectionName[0].api_collection_name} already exist, please change to a different name`})
       }
-
+      console.log(api_collection)
       const createApiCollection = await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection.api_collection_name,
@@ -1057,14 +1057,14 @@ async function deleteChildAttribute(attribute) {
 }
 
 async function publishChildAttribute(attribute) {
-  while (attribute.child_attr_ids) {
-    attribute.forEach(async (attribute) => {
-      const publishObjectAttribute = await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id, {
-        data: {
-          publishedAt: Date.now(),
-        }
-      });
-      publishChildAttribute(attribute);
+  const publishObjectAttribute = await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id, {
+    data: {
+      publishedAt: Date.now(),
+    }
+  });
+  if (attribute.child_attr_ids) {
+    attribute.child_attr_ids.forEach(value => {
+      publishChildAttribute(value);
     })
   }
 }
