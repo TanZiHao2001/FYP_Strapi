@@ -31,8 +31,8 @@ module.exports = createCoreController(
           innerArray.map(obj => (new Date(obj.date).toDateString()))
         );
         let rowIndex = formattedDates.findIndex(
-          innerArray => innerArray.includes(new Date(timeNow.getFullYear(), timeNow.getMonth(), timeNow.getDate(), 8).toDateString()));
-        let columnIndex = formattedDates[rowIndex].indexOf(new Date(timeNow.getFullYear(), timeNow.getMonth(), timeNow.getDate(), 8).toDateString());
+          innerArray => innerArray.includes(new Date(timeNow.getFullYear(), timeNow.getMonth(), timeNow.getDate()).toDateString()));
+        let columnIndex = formattedDates[rowIndex].indexOf(new Date(timeNow.getFullYear(), timeNow.getMonth(), timeNow.getDate()).toDateString());
         const todayAnnouncement = [];
         for(let i = 0; i < announcement[rowIndex][columnIndex].length; i++) {
           const todayAnnouncementContent = await strapi.entityService.findOne("api::announcement.announcement", announcement[rowIndex][columnIndex][i].clickResponse);
@@ -77,7 +77,7 @@ function getCurrentMonthCalendar(year, month) {
   const lastDateCurrentMonth = new Date(year, month, 0).getDate() // 31 (31/12)
   const lastDateLastMonth = new Date(year, month - 1, 0).getDate() // 30 (30/11)
   for(let i = firstDayCurrentMonth; i > 0; i--) {
-      tempMonthCalendar.push({date: new Date(year, month - 2, lastDateLastMonth - i + 1, 8)})
+      tempMonthCalendar.push({date: new Date(year, month - 2, lastDateLastMonth - i + 1)})
   }
   for(let i = 1; i <= lastDateCurrentMonth; i++){
       tempMonthCalendar.push({date: new Date(year, month - 1, i)})
