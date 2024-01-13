@@ -11,7 +11,6 @@ module.exports = {
   apiCollection: async (ctx) => {
     try {
       const vendorId = await checkAccessVendor(ctx)
-      
       if (!vendorId) {
         throw createError.Unauthorized();
       }
@@ -134,7 +133,8 @@ module.exports = {
   },
   getOneapiCollection: async (ctx) => {
     try {
-      if (!(await checkAccessAdmin(ctx))) {
+      const vendorId = await checkAccessVendor(ctx)
+      if (!vendorId) {
         throw createError.Unauthorized();
       }
 
