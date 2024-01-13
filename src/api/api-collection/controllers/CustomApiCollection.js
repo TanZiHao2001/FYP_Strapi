@@ -165,7 +165,7 @@ module.exports = {
                 $eq: apiCollectionId
               }
             },
-            fields: ["api_collection_name", "description"],
+            fields: ["api_collection_name", "description","short_description"],
             populate: {
               object_id: {
                 fields: ["object"],
