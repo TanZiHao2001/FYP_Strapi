@@ -46,7 +46,7 @@ cron.schedule("0 8 * * 1-5", async () => {
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
-    const link = `http://localhost:4200/sign/set-up-password?token=${verifyToken}`;
+    const link = `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`;
     // const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
@@ -113,8 +113,8 @@ function validateEmail(email) {
 function setToken(ctx, key, value) {
   ctx.cookies.set(key, value, {
     httpOnly: true,
-    secure: false,
-    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production" ? true : false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
     maxAge:
       key === "refreshToken" ? 60 * 60 * 24 * 1000 * 365 : 60 * 60 * 24 * 1000,
     path: "/",
@@ -204,8 +204,8 @@ module.exports = {
       const refreshToken = await signToken("refreshToken", entry.id);
       ctx.cookies.set('abbre', getAbbreviation(entry.username), {
         httpOnly: false,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 60 * 60 * 24 * 1000,
         path: "/",
       });
@@ -333,8 +333,8 @@ module.exports = {
 
       ctx.cookies.set("accessToken", null, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
@@ -342,8 +342,8 @@ module.exports = {
 
       ctx.cookies.set("refreshToken", null, {
         httpOnly: true,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
@@ -351,8 +351,8 @@ module.exports = {
 
       ctx.cookies.set("abbre", null, {
         httpOnly: false,
-        secure: false,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         maxAge: 0,
         expires: new Date(0),
         path: "/",
@@ -415,8 +415,8 @@ module.exports = {
       const link =
         result[0].password == null
           // ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          : `http://localhost:4200/sign/reset-password?token=${verifyToken}`
+          ? `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`
+          : `http://fyp-frontend-939df.web.app/sign/reset-password?token=${verifyToken}`
           // ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
           // : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
