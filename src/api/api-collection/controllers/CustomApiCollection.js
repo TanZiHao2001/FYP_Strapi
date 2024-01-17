@@ -31,9 +31,6 @@ module.exports = {
                 id: {
                   $eq: vendorId,
                 },
-                // status: {
-                //   $eq: "Approved",
-                // }
               },
               status: {
                 $eq: "Approved",
@@ -287,7 +284,6 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
-  //the function below might not be in use, need to double check
   getAllApiCollection: async (ctx) => {
     try {
       if (!(await checkAccessAdmin(ctx))) {
@@ -447,120 +443,6 @@ module.exports = {
       await errorHandler(ctx, error);
     }
   },
-  createWholeApiCollectionFromFile: async (ctx) => {
-    try {
-      if (!(await checkAccessAdmin(ctx))) {
-        throw createError.Unauthorized();
-      }
-      const fileContent = ctx.request.body
-      if (!(await checkFileContent(ctx, fileContent))) {
-        return;
-      }
-      const {category_name, api_collection} = ctx.request.body;
-      const object = api_collection.object;
-      const apis = api_collection.apis;
-      const object_attributes = object.attributes;
-
-      const apiCategory = await strapi.entityService.findMany("api::api-category.api-category", {
-        filters: {
-          category_name: {
-            $eq: category_name
-          }
-        }
-      });
-
-      const createApiCollection = await strapi.entityService.create("api::api-collection.api-collection", {
-        data: {
-          api_collection_name: api_collection.api_collection_name,
-          description: api_collection.api_collection_description,
-          short_description: api_collection.api_collection_short_description,
-          api_category_id: apiCategory[0].id
-        }
-      });
-
-      const createObject = await strapi.entityService.create("api::api-coll-obj.api-coll-obj", {
-        data: {
-          object: object.object_json,
-          api_collection: createApiCollection.id
-        }
-      });
-
-      for (const attribute of object_attributes) {
-        if (!attribute.child_attributes) {
-          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
-            data: {
-              attr_name: attribute.attribute_name,
-              attr_type: attribute.attribute_type,
-              attr_description: attribute.attribute_description,
-              object_id: createObject.id
-            }
-          });
-        } else {
-          const childAttributesIds = await insertChildtAttributes(attribute.child_attributes, "api::api-coll-obj-attr.api-coll-obj-attr")
-          const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
-            data: {
-              attr_name: attribute.attribute_name,
-              attr_type: attribute.attribute_type,
-              attr_description: attribute.attribute_description,
-              object_id: createObject.id,
-              child_attr_ids: childAttributesIds
-            }
-          });
-        }
-      }
-
-      for (const api of apis) {
-        const createApi = await strapi.entityService.create("api::api.api", {
-          data: {
-            api_name: api.api_name,
-            api_description: api.api_description,
-            api_method: api.api_method,
-            api_endpoint: api.api_endpoint,
-            api_return: api.api_return,
-            api_response_json: api.api_response_json,
-            api_collection_id: createApiCollection.id
-          }
-        });
-        const api_request_codes = api.api_request_codes;
-        for (const api_request_code of api_request_codes) {
-          const createApiRequestCode = await strapi.entityService.create("api::api-req-code-lang.api-req-code-lang", {
-            data: {
-              lang_name: api_request_code.language_name,
-              api_req_code: api_request_code.api_request_code,
-              api_id: createApi.id
-            }
-          })
-        }
-        const api_parameters = api.api_parameters;
-        for (const api_parameter of api_parameters) {
-          if (!api_parameter.child_attributes) {
-            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
-              data: {
-                attr_name: api_parameter.attribute_name,
-                attr_type: api_parameter.attribute_type,
-                attr_description: api_parameter.attribute_description,
-                api_id: createApi.id
-              }
-            });
-          } else {
-            const childAttributesIds = await insertChildtAttributes(api_parameter.child_attributes, "api::api-param.api-param")
-            const createApiParam = await strapi.entityService.create("api::api-param.api-param", {
-              data: {
-                attr_name: api_parameter.attribute_name,
-                attr_type: api_parameter.attribute_type,
-                attr_description: api_parameter.attribute_description,
-                api_id: createApi.id,
-                child_attr_ids: findChildAttributes
-              }
-            });
-          }
-        }
-      }
-      ctx.send({id: createApiCollection.id})
-    } catch (error) {
-      await errorHandler(ctx, error)
-    }
-  },
   getFileContent: async (ctx) => {
     try {
       if (!(await checkAccessAdmin(ctx))) {
@@ -590,7 +472,6 @@ module.exports = {
       if (checkApiCollectionName.length > 0) {
         return ctx.send({error: `${checkApiCollectionName[0].api_collection_name} already exist, please change to a different name`})
       }
-      console.log(api_collection)
       const createApiCollection = await strapi.entityService.create("api::api-collection.api-collection", {
         data: {
           api_collection_name: api_collection.api_collection_name,
@@ -672,7 +553,7 @@ module.exports = {
                 attr_type: api_parameter.attribute_type,
                 attr_description: api_parameter.attribute_description,
                 api_id: createApi.id,
-                child_attr_ids: findChildAttributes
+                child_attr_ids: childAttributesIds
               }
             });
           }
@@ -775,7 +656,7 @@ module.exports = {
                 publishedAt: Date.now(),
               }
             });
-            publishChildAttribute(attribute);
+            publishChildAttribute(attribute, "api::api-coll-obj-attr.api-coll-obj-attr");
           })
           apiCollection.api_ids.forEach(async (api) => {
             const publishApi = await strapi.entityService.update("api::api.api", api.id, {
@@ -796,7 +677,7 @@ module.exports = {
                   publishedAt: Date.now(),
                 }
               });
-              deleteChildAttribute(apiParam);
+              publishChildAttribute(apiParam, "api::api-param.api-param");
             })
           })
         })
@@ -1015,38 +896,6 @@ async function checkKeyExistAndTypeOfValue(ctx, key, fileContent, schema) {
 
 }
 
-async function findChildAttributes(attribute, childAttributesId) {
-  attribute.forEach(async (child) => {
-    if (!child.child_attributes) {
-      const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
-        data: {
-          attr_name: attribute.attribute_name,
-          attr_type: attribute.attribute_type,
-          attr_description: attribute.attribute_description,
-          publishedAt: Date.now()
-        }
-      });
-      childAttributesId.push(createObjectAttribute.id);
-      // return;
-    }
-    // findChildAttributes(child, childAttributesId)
-    else {
-      findChildAttributes
-    }
-    const createObjectAttribute = await strapi.entityService.create("api::api-coll-obj-attr.api-coll-obj-attr", {
-      data: {
-        attr_name: attribute.attribute_name,
-        attr_type: attribute.attribute_type,
-        attr_description: attribute.attribute_description,
-        child_attr_ids: childAttributesId,
-      }
-    });
-    childAttributesId = [];
-  })
-  findChildAttributes(attribute.child_attributes, childAttributesId);
-  return;
-}
-
 async function deleteChildAttribute(attribute) {
   const deleteObjectAttribute = await strapi.entityService.delete("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id);
   if (attribute.child_attr_ids) {
@@ -1056,15 +905,15 @@ async function deleteChildAttribute(attribute) {
   }
 }
 
-async function publishChildAttribute(attribute) {
-  const publishObjectAttribute = await strapi.entityService.update("api::api-coll-obj-attr.api-coll-obj-attr", attribute.id, {
+async function publishChildAttribute(attribute, contentType) {
+  const publishObjectAttribute = await strapi.entityService.update(contentType, attribute.id, {
     data: {
       publishedAt: Date.now(),
     }
   });
   if (attribute.child_attr_ids) {
     attribute.child_attr_ids.forEach(value => {
-      publishChildAttribute(value);
+      publishChildAttribute(value, contentType);
     })
   }
 }

@@ -143,14 +143,6 @@ module.exports = createCoreController(
         }
         
         result.forEach((items) => {
-          // items.api_collections.forEach((api_collection) => {
-          //   api_collection.api_ids.forEach((api_id) => {
-          //       api_id.api_req_code_ids.forEach((api_req_code_id) => {
-          //         api_id.lang_name = api_req_code_id.lang_name;
-          //         api_id.api_req_code = api_req_code_id.api_req_code;
-          //       })
-          //   })
-          // })
           removeEmptyChildArrays(items)
         });
         return result[0];

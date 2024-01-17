@@ -159,9 +159,6 @@ module.exports = {
             }
           }
         });
-        // if(findOneResult.api_collections.length > 0){
-        //   return ctx.send({message: "Please ensure no Api collection is in this category"});
-        // }
 
         for(let i = 0; i < findOneResult.api_collections.length; i++){
           if(findOneResult.api_collections[i].access_controls.length > 0){
