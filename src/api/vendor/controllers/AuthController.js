@@ -13,10 +13,10 @@ const { create } = require("tar");
 const transporter = nodemailer.createTransport({
   service: "Gmail", // Use the email service you prefer
   auth: {
+    user: process.env.NODEMAILER_EMAIL,
+    pass: process.env.NODEMAILER_PASS
     // user: "sendemail350@gmail.com",
-    user: "zihao.010415@gmail.com",
     // pass: "kjhigtncoovkicff", //update in .env
-    pass: "vvjw xwyg lbei ytkx",
   },
 });
 //0 8 * * 1-5
@@ -46,7 +46,8 @@ cron.schedule("0 8 * * 1-5", async () => {
   const idAndEmail = filteredResult.map((item) => ({id: item.id, email: item.email}));
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
-    const link = `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`;
+    const link = `${process.env.FRONTEND_EMAIL}/sign/set-up-password?token=${verifyToken}`
+    // const link = `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`;
     // const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
@@ -78,7 +79,7 @@ cron.schedule("0 8 * * 1-5", async () => {
   `;
     // Setup email data
     const mailOptions = {
-      from: "sendemail350@gmail.com",
+      from: process.env.NODEMAILER_EMAIL,
       to: item.email,
       subject: "Set Up Your Pasword",
       html: output,
@@ -415,8 +416,10 @@ module.exports = {
       const link =
         result[0].password == null
           // ? `http://localhost:4200/sign/set-up-password?token=${verifyToken}`
-          ? `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`
-          : `http://fyp-frontend-939df.web.app/sign/reset-password?token=${verifyToken}`
+          // ? `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`
+          // : `http://fyp-frontend-939df.web.app/sign/reset-password?token=${verifyToken}`
+          ? `${process.env.FRONTEND_URL}/sign/set-up-password?token=${verifyToken}`
+          : `${process.env.FRONTEND_URL}/sign/reset-password?token=${verifyToken}`
           // ? `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`
           // : `http://192.168.102.118:4200/sign/reset-password?token=${verifyToken}`;
 
@@ -456,7 +459,7 @@ module.exports = {
 
       // Setup email data
       const mailOptions = {
-        from: "sendemail350@gmail.com",
+        from: process.env.NODEMAILER_EMAIL,
         to: email,
         subject: result[0].password == null ? "Set Up Your Password" : "Reset Your Password",
         html: output,
