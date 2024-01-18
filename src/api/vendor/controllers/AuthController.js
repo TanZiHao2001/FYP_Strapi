@@ -15,8 +15,6 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.NODEMAILER_EMAIL,
     pass: process.env.NODEMAILER_PASS
-    // user: "sendemail350@gmail.com",
-    // pass: "kjhigtncoovkicff", //update in .env
   },
 });
 //0 8 * * 1-5
@@ -47,8 +45,6 @@ cron.schedule("0 8 * * 1-5", async () => {
   idAndEmail.forEach(async (item) => {
     const verifyToken = await signToken("verifyToken", item.id);
     const link = `${process.env.FRONTEND_EMAIL}/sign/set-up-password?token=${verifyToken}`
-    // const link = `http://fyp-frontend-939df.web.app/sign/set-up-password?token=${verifyToken}`;
-    // const link = `http://192.168.102.118:4200/sign/set-up-password?token=${verifyToken}`;
     const output = `
     <html>
       <head>
