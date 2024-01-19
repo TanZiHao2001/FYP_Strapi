@@ -10,11 +10,12 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookies());
 
-const corsOptions = {
-  origin: 'http://localhost:4200',
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://192.168.102.118:4200',
+//   credentials: true,
+// };
+// console.log(corsOptions)
+// app.use(cors(corsOptions));
 module.exports = {
   /**
    * An asynchronous register function that runs before
