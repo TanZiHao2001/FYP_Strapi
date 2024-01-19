@@ -917,35 +917,3 @@ async function publishChildAttribute(attribute, contentType) {
     })
   }
 }
-
-
-//for old delete api collection
-// const findOneResult = await strapi.entityService.findOne("api::api-collection.api-collection", collectionID,{
-//   fields: ['api_collection_name'],
-//   populate: {
-//     access_controls: {
-//       fields: ["status"],
-//       filters: {
-//         status: {
-//           $eq: "Approved",
-//         }
-//       },
-//       populate: {
-//         vendor_id: {
-//           fields: ["username"]
-//         }
-//       }
-//     },
-//   }
-// });
-// for(let i = 0; i < findOneResult.access_controls.length; i++){
-//   let usernames = [];
-//   findOneResult.access_controls.forEach(access_control => {
-//     usernames.push(access_control.vendor_id.username);
-//   })
-//   const errorMessage = `Vendor ${usernames.join(', ')} have access to Api Collection ${findOneResult.api_collection_name}`;
-//   console.log(errorMessage)
-//   return ctx.send({message: errorMessage})
-// }
-// const deleteEntry = await strapi.entityService.delete("api::api-collection.api-collection", collectionID)
-// ctx.send({message: `Api Collection ${findOneResult.api_collection_name} is deleted`});

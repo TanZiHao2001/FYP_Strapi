@@ -57,8 +57,6 @@ module.exports = {
 
       const oneDayInMS = 24 * 60 * 60 * 1000;
 
-      // const createdDateFormatted = getTimeNowInMiliInMalaysiaTime().getTime();
-      // const expiredDateFormatted = getTimeNowInMiliInMalaysiaTime().getTime() + oneDayInMS;
       const dummy_token = await signToken('refreshToken', project_entry.id)
       const token_entry = await strapi.entityService.create('api::token.token', {
         data: {
@@ -234,10 +232,6 @@ module.exports = {
       if (db_vendorId.length === 0) {
         throw createError.Forbidden();
       }
-
-      // if(!project_name && !description){
-      //   throw createError.UnprocessableEntity("Please ensure at least one field is filled!");
-      // }
 
       const projectDetails = await strapi.entityService.findOne('api::project.project', projectId, {
         fields: ["project_name", "description"]
@@ -422,17 +416,3 @@ module.exports = {
     }
   },
 };
-
-function getTimeNowInMiliInMalaysiaTime() {
-  const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
-  const currentDate = new Date();
-  const currentTimeInMili = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
-  return currentTimeInMili;
-  // const malaysiaTimeZoneOffset = 8; // Malaysia time is UTC+8
-  // const currentDate = new Date();
-  // const createdDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000);
-  // const oneDayInMS = 24 * 60 * 60 * 1000;
-  // const expiredDate = new Date(currentDate.getTime() + malaysiaTimeZoneOffset * 60 * 60 * 1000 + oneDayInMS);
-  // const createdDateFormatted = createdDate.toISOString();
-  // const expiredDateFormatted = expiredDate.toISOString();
-}

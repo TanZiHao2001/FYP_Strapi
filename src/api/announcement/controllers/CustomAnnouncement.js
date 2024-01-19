@@ -396,7 +396,6 @@ module.exports = {
             await errorHandler(ctx, error)
         }
     }
-    
   };
 
   function getCurrentMonthCalendar(year, month) {
