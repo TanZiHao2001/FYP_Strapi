@@ -13,6 +13,7 @@ app.use(cookies());
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL : 'http://192.168.102.118:4200',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 };
 app.use(cors(corsOptions));
 module.exports = {
